@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <string>
 #include "tama_file.cpp"
+#include "define.h"
 
 using namespace std;
 
