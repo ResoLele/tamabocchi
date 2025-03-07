@@ -15,6 +15,7 @@ class Music
         string date;
         string composer;
         string type;
+        string path;
 
     public:
         
