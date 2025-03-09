@@ -2,6 +2,7 @@
 #define DEFINE_H
 
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -9,14 +10,15 @@ class Music
 {
     private:
         string title;
-        string artist;
         string album;
-        string genre;
         string date;
-        string composer;
-        string type;
         string path;
 
+        vector<string> artist;
+        vector<string> composer;
+        vector<string> type;
+        vector<string> genre;
+        
     public:
         
 };
