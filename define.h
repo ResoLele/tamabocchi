@@ -6,6 +6,14 @@
 
 using namespace std;
 
+// tama_file.cpp
+void fileInit();
+void fileChangeDir();
+void fileListDir();
+
+// tama_tag.cpp
+void tagPrintTitle();
+
 class Music
 {
     private:

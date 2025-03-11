@@ -2,8 +2,6 @@
 #include <filesystem>
 #include <string>
 #include "define.h"
-#include "tama_file.cpp"
-#include "tama_tag.cpp"
 
 using namespace std;
 
@@ -12,6 +10,7 @@ int userInputAction;
 
 enum Action {   ACTION_CHANGE_DIR = 1,
                 ACTION_LIST_DIR,
+                ACTION_TEST_TITLE,
                 ACTION_END_TASK,
             };
 
@@ -31,8 +30,11 @@ int main() {
             case ACTION_LIST_DIR:
                 fileListDir();
                 break;
+            case ACTION_TEST_TITLE:
+                tagPrintTitle();
+                break;
             case ACTION_END_TASK:
-                cout << "Have a nice day!";
+                cout << "Have a nice day!" << endl;
                 break;
             default:
                 cerr << "Invaild Action." << endl;

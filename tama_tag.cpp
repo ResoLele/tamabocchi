@@ -1,5 +1,10 @@
-#include "tag.h"
+#include <iostream>
+#include "define.h"
 
-int main() {
-    return 0;
+#include "fileref.h"
+
+TagLib::FileRef f("/Users/lain/Music/lb/test.flac");
+
+void tagPrintTitle() {
+    std::cout << "Hello World" << endl;
 }

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include "define.h"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -9,12 +10,12 @@ namespace fs = std::filesystem;
 fs::path USER_PATH;
 string DEFAULT_PATH;
 
-void fileInit () {
+void fileInit() {
 	USER_PATH = fs::current_path();
 }
 
 // FUNCTIONS
-void fileChangeDir () {
+void fileChangeDir() {
 	do {
 		cin >> USER_PATH;
 		if (fs::directory_entry{USER_PATH}.exists()) {
@@ -26,7 +27,7 @@ void fileChangeDir () {
 	} while (!fs::directory_entry{USER_PATH}.exists());
 }
 
-void fileListDir () {
+void fileListDir() {
 	for (const auto& dirEntry : fs::directory_iterator(USER_PATH)) {
 		cout << dirEntry.path() << '\n'; 
 	}
