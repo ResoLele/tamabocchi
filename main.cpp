@@ -1,8 +1,9 @@
 #include <iostream>
 #include <filesystem>
 #include <string>
-#include "tama_file.cpp"
 #include "define.h"
+#include "tama_file.cpp"
+#include "tama_tag.cpp"
 
 using namespace std;
 
@@ -29,6 +30,9 @@ int main() {
                 break;
             case ACTION_LIST_DIR:
                 fileListDir();
+                break;
+            case ACTION_END_TASK:
+                cout << "Have a nice day!";
                 break;
             default:
                 cerr << "Invaild Action." << endl;
