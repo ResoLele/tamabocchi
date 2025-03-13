@@ -7,31 +7,39 @@ using namespace std;
 
 // variable declaration
 int userInputAction;
+string selectedPath;
+string selectedSong;
 
-enum Action {   ACTION_CHANGE_DIR = 1,
-                ACTION_LIST_DIR,
-                ACTION_TEST_TITLE,
+// Action Enum
+enum Action {   
                 ACTION_END_TASK,
+                ACTION_CHANGE_DIR,
+                ACTION_LIST_DIR,
+                ACTION_SELECT_FILE,
+                ACTION_PRINT_TAGS,
             };
 
 int main() {
 
     // Initialize
-    fileInit();
+    fileInit(selectedPath);
 
     do {
-        cout << "Enter Action: ";
+        cout << "Select Action: ";
     	cin >> userInputAction;
 
         switch (userInputAction) {
             case ACTION_CHANGE_DIR:
-                fileChangeDir();
+                fileChangeDir(selectedPath);
                 break;
             case ACTION_LIST_DIR:
                 fileListDir();
                 break;
-            case ACTION_TEST_TITLE:
-                tagPrintTitle();
+            case ACTION_SELECT_FILE:
+                fileSelectFile(selectedPath, selectedSong);
+                break;
+            case ACTION_PRINT_TAGS:
+                tagPrintTags(selectedPath, selectedSong);
                 break;
             case ACTION_END_TASK:
                 cout << "Have a nice day!" << endl;

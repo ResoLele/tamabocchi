@@ -6,13 +6,12 @@
 
 using namespace std;
 
-// tama_file.cpp
-void fileInit();
-void fileChangeDir();
+void fileInit(string &selectedPath);
+void fileChangeDir(string &selectedPath);
 void fileListDir();
+void fileSelectFile(string &selectedPath, string &selectedSong);
 
-// tama_tag.cpp
-void tagPrintTitle();
+void tagPrintTags(string &selectedPath, string &selectedSong);
 
 class Music
 {

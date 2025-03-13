@@ -1,10 +1,18 @@
 #include <iostream>
+#include <string>
 #include "define.h"
 
-#include "fileref.h"
+#include <taglib/fileref.h>
+#include <taglib/tstring.h>
 
-TagLib::FileRef f("/Users/lain/Music/lb/test.flac");
+// Print tags of the selected file
+void tagPrintTags(std::string &selectedPath, std::string &selectedSong) {
+    TagLib::FileName song = selectedSong.c_str();
 
-void tagPrintTitle() {
-    std::cout << "Hello World" << endl;
+    TagLib::FileRef test(song);
+    TagLib::String title = test.tag() -> title();
+    TagLib::String artist = test.tag() -> artist();
+
+    std::cout << "Title:\t\t" << title << endl;
+    std::cout << "Artist:\t\t" << artist << endl;
 }
