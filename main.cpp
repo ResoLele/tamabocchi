@@ -10,6 +10,19 @@ int userInputAction;
 string selectedPath;
 string selectedSong;
 
+string get_OS() {
+    #ifdef _WIN32
+        return "win";
+    #elif _WIN64
+        return "win";
+    #elif __APPLE__
+        return "mac";
+    #elif __linux__
+        return "linux";
+    #else
+        return "";
+    #endif
+}
 // Action Enum
 enum Action {   
                 ACTION_END_TASK,
@@ -23,6 +36,8 @@ int main() {
 
     // Initialize
     fileInit(selectedPath);
+    string OS = get_OS();
+    cout << OS << " OS detected." << endl;
 
     do {
         cout << "Select Action: ";

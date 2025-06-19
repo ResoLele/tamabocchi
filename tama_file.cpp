@@ -14,6 +14,7 @@ string DEFAULT_PATH;
 void fileInit(string &selectedPath) {
 	USER_PATH = fs::current_path();
 	selectedPath = USER_PATH.string();
+	
 }
 
 // FUNCTIONS
