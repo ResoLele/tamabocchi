@@ -11,10 +11,16 @@ fs::path USER_PATH;
 fs::path USER_FILE;
 string DEFAULT_PATH;
 
-void fileInit(string &selectedPath) {
+void fileInit(string &selectedPath, string USER_OS) {
 	USER_PATH = fs::current_path();
 	selectedPath = USER_PATH.string();
-	
+
+	if (USER_OS == "Windows"){
+		selectedPath += "\\music";
+	}
+	else if (USER_OS == "macOS" || USER_OS == "Linux"){
+		selectedPath += "/music";
+	}
 }
 
 // FUNCTIONS
@@ -32,7 +38,8 @@ void fileChangeDir(string &selectedPath) {
 	} while (!fs::directory_entry{USER_PATH}.exists());
 }
 
-void fileListDir() {
+void fileListDir(string selectedPath) {
+	fs::path USER_PATH = selectedPath;
 	for (const auto &dirEntry : fs::directory_iterator(USER_PATH)) {
 		if (dirEntry.path().extension() == ".flac") {
 			cout << "FOUND FLAC: " << dirEntry.path() << '\n';
@@ -44,7 +51,7 @@ void fileListDir() {
 void fileSelectFile(string &selectedPath, string &selectedSong)
 {
 	do {
-		fileListDir();
+		fileListDir(selectedPath);
 		cout << "Please enter the filename" << endl;
 		cin >> USER_FILE; 
 		selectedSong = USER_PATH.string() + '/' + USER_FILE.string();

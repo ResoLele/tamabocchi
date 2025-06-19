@@ -6,11 +6,10 @@
 
 using namespace std;
 
-string get_OS();
 
-void fileInit(string &selectedPath);
+void fileInit(string &selectedPath, string USER_OS);
 void fileChangeDir(string &selectedPath);
-void fileListDir();
+void fileListDir(string selectedPath);
 void fileSelectFile(string &selectedPath, string &selectedSong);
 
 void tagPrintTags(string &selectedPath, string &selectedSong);

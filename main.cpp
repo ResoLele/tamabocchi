@@ -9,7 +9,6 @@ using namespace std;
 int userInputAction;
 string selectedPath;
 string selectedSong;
-string USER_OS;
 
 // Check OS
 #ifdef _WIN32 
@@ -32,7 +31,7 @@ enum Action {
 int main() {
 
     // Initialize
-    fileInit(selectedPath);
+    fileInit(selectedPath, USER_OS);
     cout << USER_OS << " detected." << endl;
 
     do {
@@ -44,7 +43,7 @@ int main() {
                 fileChangeDir(selectedPath);
                 break;
             case ACTION_LIST_DIR:
-                fileListDir();
+                fileListDir(selectedPath);
                 break;
             case ACTION_SELECT_FILE:
                 fileSelectFile(selectedPath, selectedSong);
