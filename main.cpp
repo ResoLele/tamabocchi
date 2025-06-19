@@ -7,19 +7,13 @@ using namespace std;
 
 // variable declaration
 int userInputAction;
+fs::path currentPath;
 string selectedPath;
 string selectedSong;
+vector<file> files;
 
-#if defined _WIN32 || defined _WIN64
-#define USER_OS "Windows"
-#elif __APPLE__ 
-#define USER_OS "macOS"
-#elif __linux__
-#define USER_OS "Linux"
-#endif
-
-void osClear(string OS) {
-    if (OS == "Windows") {system("clr");}
+void osClear(string USER_OS = USER_OS) {
+    if (USER_OS == "Windows") {system("clr");}
     else {system("clear");}
     return;
 }
@@ -28,44 +22,41 @@ void osClear(string OS) {
 enum Action {   
                 ACTION_END_TASK,
                 ACTION_CHANGE_DIR,
-                ACTION_LIST_DIR,
-                ACTION_SELECT_FILE,
+                ACTION_PRINT_FILES,
                 ACTION_PRINT_TAGS,
             };
 
 int main() {
 
-    // Initialize
-    fileInit(selectedPath, USER_OS);
+    // Initialize Path
     cout << USER_OS << " detected." << endl;
+    currentPath = dirChange();
+    cout << "Current Path: " << currentPath << endl;
+    if (!dirScan(currentPath)) {
+        cout << "No FLAC in this directory! Please change directory." << endl;
+    }
+    tagAddTags();
 
     do {
-
         cout << "Select Action:\n"
                 "(1) Change Directory\n"
-                "(2) List Directory\n"
-                "(3) Select File\n"
-                "(4) Print Tags\n"
+                "(2) Print all music file in this folder\n"
+                "(3) Print all Tags\n"
                 "(0) End Task"
         << endl;
     	cin >> userInputAction;
 
         switch (userInputAction) {
             case ACTION_CHANGE_DIR:
-                osClear(USER_OS);
-                fileChangeDir(selectedPath);
+                currentPath = dirChange();
                 break;
-            case ACTION_LIST_DIR:
+            case ACTION_PRINT_FILES:
                 osClear(USER_OS);
-                fileListDir(selectedPath);
-                break;
-            case ACTION_SELECT_FILE:
-                osClear(USER_OS);
-                fileSelectFile(selectedPath, selectedSong);
+                dirPrint(currentPath);
                 break;
             case ACTION_PRINT_TAGS:
                 osClear(USER_OS);    
-                tagPrintTags(selectedPath, selectedSong);
+                tagPrintTags();
                 break;
             case ACTION_END_TASK:
                 osClear(USER_OS);

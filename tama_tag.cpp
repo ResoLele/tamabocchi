@@ -4,15 +4,21 @@
 
 #include <taglib/fileref.h>
 #include <taglib/tstring.h>
+#include <taglib/tag.h>
 
-// Print tags of the selected file
-void tagPrintTags(std::string &selectedPath, std::string &selectedSong) {
-    TagLib::FileName song = selectedSong.c_str();
+void tagAddTags() {
+    for (file &i : files) {
+        TagLib::FileRef scan(i.path().c_str());
+        i.setTitle(scan.tag()->title().to8Bit(true));
+        i.setAlbum(scan.tag()->album().to8Bit(true));
+    }
+}
 
-    TagLib::FileRef test(song);
-    TagLib::String title = test.tag() -> title();
-    TagLib::String artist = test.tag() -> artist();
-
-    std::cout << "Title:\t\t" << title << endl;
-    std::cout << "Artist:\t\t" << artist << endl;
+void tagPrintTags() {
+    for (file i : files) {
+        cout << "Title:\t\t" << i.title() << endl;
+        cout << "Album:\t\t" << i.album() << endl;
+        cout << endl;
+    }
+    cout << endl;
 }
