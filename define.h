@@ -6,6 +6,8 @@
 
 using namespace std;
 
+string get_OS();
+
 void fileInit(string &selectedPath);
 void fileChangeDir(string &selectedPath);
 void fileListDir();
