@@ -56,6 +56,7 @@ int main() {
                 fileChangeDir(selectedPath);
                 break;
             case ACTION_LIST_DIR:
+                osClear(USER_OS);
                 fileListDir(selectedPath);
                 break;
             case ACTION_SELECT_FILE:
