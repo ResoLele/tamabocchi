@@ -9,18 +9,16 @@ using namespace std;
 int userInputAction;
 string selectedPath;
 string selectedSong;
+string USER_OS;
 
-string get_OS() {
-    #ifdef _WIN32 OR _WIN64
-        return "win";
-    #elif __APPLE__
-        return "mac";
-    #elif __linux__
-        return "linux";
-    #else
-        return "";
-    #endif
-}
+// Check OS
+#ifdef _WIN32 
+#define USER_OS "Windows"
+#elif __APPLE__ 
+#define USER_OS "macOS"
+#elif __linux__
+#define USER_OS "Linux"
+#endif
 
 // Action Enum
 enum Action {   
@@ -35,8 +33,7 @@ int main() {
 
     // Initialize
     fileInit(selectedPath);
-    string OS = get_OS();
-    cout << OS << " OS detected." << endl;
+    cout << USER_OS << " detected." << endl;
 
     do {
         cout << "Select Action: ";
