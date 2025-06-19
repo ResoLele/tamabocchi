@@ -33,10 +33,12 @@ void fileChangeDir(string &selectedPath) {
 }
 
 void fileListDir() {
-	for (const auto& dirEntry : fs::directory_iterator(USER_PATH)) {
-		cout << dirEntry.path() << '\n'; 
+	for (const auto &dirEntry : fs::directory_iterator(USER_PATH)) {
+		if (dirEntry.path().extension() == ".flac") {
+			cout << "FOUND FLAC: " << dirEntry.path() << '\n';
+		}
 	}
-	cout << endl;
+	cout << "END OF DIRECTORY" << endl;
 }
 
 void fileSelectFile(string &selectedPath, string &selectedSong)
