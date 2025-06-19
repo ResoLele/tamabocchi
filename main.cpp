@@ -11,9 +11,7 @@ string selectedPath;
 string selectedSong;
 
 string get_OS() {
-    #ifdef _WIN32
-        return "win";
-    #elif _WIN64
+    #ifdef _WIN32 OR _WIN64
         return "win";
     #elif __APPLE__
         return "mac";
@@ -23,6 +21,7 @@ string get_OS() {
         return "";
     #endif
 }
+
 // Action Enum
 enum Action {   
                 ACTION_END_TASK,
