@@ -4,15 +4,14 @@ using namespace std;
 namespace fs = std::filesystem;
 
 // Class file
-void music::setFilename(const string str) {_filename = str;}
-void music::setPath(const fs::path str) {_path = str;}
+void file::setFilename(const string filename) {_filename = filename;}
+void file::setPath(const fs::path path) {_path = path;}
+string file::filename() {return _filename;}
+fs::path file::path() {return _path;}
 
 void music::setTitle(const string str) {_title = str;}
 void music::setAlbum(const string str) {_album = str;}
 void music::setDate(const string str) {_date = str;}
-
-string music::filename() {return _filename;}
-string music::path() {return _path;}
 string music::title() {return _title;}
 string music::album() {return _album;}
 string music::date() {return _date;}

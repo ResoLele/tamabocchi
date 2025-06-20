@@ -1,5 +1,6 @@
 #include "define.h"
 
+// helper functions
 uint32_t readLEHeader(vector<byte> bytes) {
     return 
     static_cast<uint32_t>(bytes[0]) |
@@ -7,6 +8,7 @@ uint32_t readLEHeader(vector<byte> bytes) {
     static_cast<uint32_t>(bytes[2]) << 16 |
     static_cast<uint32_t>(bytes[3]) << 24;
 }
+
 uint32_t readBEHeader(vector<byte> bytes) {
     return
     static_cast<uint32_t>(bytes[1]) << 16 |
@@ -14,93 +16,76 @@ uint32_t readBEHeader(vector<byte> bytes) {
     static_cast<uint32_t>(bytes[3]);
 }
 
-void streaminfo::setLength(const vector<byte> head) {
-    _length = readBEHeader(head);
-};
-void streaminfo::setSampleRate(const vector<byte> block) {
-    _sampleRate = (
+// getter
+string music::magic() {return _info._magic;}
+uint16_t music::length() {return _info._length;}
+uint32_t music::sampleRate() {return _info._sampleRate;}
+uint16_t music::channel() {return _info._channel;}
+uint16_t music::spb() {return _info._spb;}
+uint64_t music::samples() {return _info._samples;}
+
+double music::totalsecs() {return _info._duration._totalsecs;}
+uint16_t music::minutes() {return _info._duration._minutes;}
+double music::seconds() {return _info._duration._seconds;}
+
+// Setter
+// Read from file & Set streaminfo
+void music::readStreaminfo(fstream &file) {
+    vector<byte> magicBytes(4);
+    vector<byte> head(4);
+    vector<byte> block;
+    
+    // Read magic (File Header)
+    file.read(reinterpret_cast<char*>(magicBytes.data()), 4);
+    _info._magic = string(reinterpret_cast<const char*>(magicBytes.data()), magicBytes.size());
+
+    // Read Header & Set streaminfo.length
+    file.read(reinterpret_cast<char*>(head.data()), 4);
+    _info._length = readBEHeader(head);
+    block.resize(_info._length);
+    file.read(reinterpret_cast<char*>(block.data()), _info._length);
+
+    // Set streaminfo.sampleRate
+    _info._sampleRate = (
     (static_cast<uint32_t>(block[10]) << 12) | 
     (static_cast<uint32_t>(block[11]) << 4) |
     (static_cast<uint32_t>(block[12]) >> 4));
-};
-void streaminfo::setChannel(const vector<byte> block) {
-    _channel = ((static_cast<uint16_t>(block[12]) & 0x0F) >> 1) + 1;
-};
-void streaminfo::setSpb(const vector<byte> block) {
-    _spb = (
+
+    // Set streaminfo.channel
+    _info._channel = ((static_cast<uint16_t>(block[12]) & 0x0F) >> 1) + 1;
+
+    // Set SPB
+    _info._spb = (
     (((static_cast<uint16_t>(block[12]) & 0x01) << 4) | (static_cast<uint16_t>(block[13]) >> 4)) + 1);
-};
-void streaminfo::setSamples(const vector<byte> block) {
-    _samples = (
+
+    // Set Samples
+    _info._samples = (
     ((static_cast<uint64_t>(block[13]) & 0x0F) << 32) |
     (static_cast<uint64_t>(block[14]) << 24) |
     (static_cast<uint64_t>(block[15]) << 16) |
     (static_cast<uint64_t>(block[16]) << 8)  |
     (static_cast<uint64_t>(block[17])));
-};
-void streaminfo::setDuration() {
-    _duration = (static_cast<double>(_samples) / static_cast<double>(_sampleRate));
-}
 
-uint16_t streaminfo::length() {return _length;}
-uint32_t streaminfo::sampleRate() {return _sampleRate;}
-uint16_t streaminfo::channel() {return _channel;}
-uint16_t streaminfo::spb() {return _spb;}
-uint64_t streaminfo::samples() {return _samples;}
-
-double streaminfo::duration() {return _duration;}
-int streaminfo::minute() {return static_cast<int>(_duration / 60);}
-double streaminfo::second() {return fmod(_duration, 60.0);}
-
-void music::setInfo(streaminfo info) {_info = info;}
-streaminfo music::info() {return _info;}
-
-string readFileHeader(fstream &file) {
-    vector<byte> bytes(4);
-    string str;
-
-    file.read(reinterpret_cast<char*>(bytes.data()), 4);
-    for (byte b : bytes) {str += static_cast<char>(b);}
-    
-    return str;
-}
-
-streaminfo readStreaminfo(fstream &file) {
-    vector<byte> head(4);
-    vector<byte> block;
-    streaminfo info;
-
-    file.read(reinterpret_cast<char*>(head.data()), 4);
-    info.setLength(head);
-    block.resize(info.length());
-    file.read(reinterpret_cast<char*>(block.data()), info.length());
-
-    info.setSampleRate(block);
-    info.setChannel(block);
-    info.setSpb(block);
-    info.setSamples(block);
-    info.setDuration();
-
-    return info;
+    // Set duration
+    _info._duration._totalsecs = static_cast<double>(_info._samples) / static_cast<double>(_info._sampleRate); 
+    _info._duration._minutes = static_cast<int>(_info._duration._totalsecs / 60); 
+    _info._duration._seconds = fmod(_info._duration._seconds, 60.0);
 }
 
 void tagPrintStreamInfo() {
     for (music &i : files) {  
         fstream file(i.path(), ios::in);
+    
+        i.readStreaminfo(file);
         
-        string magic = readFileHeader(file);
-        streaminfo info = readStreaminfo(file);
-        
-        i.setInfo(info);
-
         cout 
             << setw(30) << "filename: " << i.filename() << '\n'
-            << setw(30) << "magic: " << magic << '\n' 
-            << setw(30) << "Sample Rate: " << dec << i.info().sampleRate() << '\n'
-            << setw(30) << "Channel: " << dec << i.info().channel() << '\n'
-            << setw(30) << "SPB: " << dec << i.info().spb() << '\n'
-            << setw(30) << "Total Samples: " << dec << i.info().samples() << '\n'
-            << setw(30) << "Duration: " << dec << i.info().duration() << " (" << i.info().minute() << ':' << i.info().second() << ')' << '\n';
+            << setw(30) << "magic: " << i.magic() << '\n' 
+            << setw(30) << "Sample Rate: " << dec << i.sampleRate() << '\n'
+            << setw(30) << "Channel: " << dec << i.channel() << '\n'
+            << setw(30) << "SPB: " << dec << i.spb() << '\n'
+            << setw(30) << "Total Samples: " << dec << i.samples() << '\n'
+            << setw(30) << "Duration: " << dec << i.totalsecs() << " (" << i.minutes() << ':' << i.seconds() << ')' << '\n';
 
         cout << endl;
 

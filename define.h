@@ -36,41 +36,42 @@ void tagPrintStreamInfo();
 void tagReadVorbis();
 void tagPrintTags();
 
-class streaminfo
+class file
 {
     private:
+    string _filename;
+    fs::path _path;
+
+    public:
+    void setFilename(const string);
+    void setPath(const fs::path);
+
+    string filename();
+    fs::path path();
+};
+
+struct duration
+{
+    double _totalsecs;
+    uint16_t _hours;
+    uint16_t _minutes;
+    double _seconds;
+};
+
+struct streaminfo
+{
+    string _magic;
+    duration _duration;
     uint16_t _length;
     uint32_t _sampleRate;
     uint16_t _channel;
     uint16_t _spb;
     uint64_t _samples;
-    double _duration; 
-
-    public:
-    void setLength(const vector<byte>);
-    void setSampleRate(const vector<byte>);
-    void setChannel(const vector<byte>);
-    void setSpb(const vector<byte>);
-    void setSamples(const vector<byte>);
-    void setDuration();
-
-    uint16_t length();
-    uint32_t sampleRate();
-    uint16_t channel();
-    uint16_t spb();
-    uint64_t samples();
-
-    double duration();
-    int minute();
-    double second();
 };
 
-class music
+class music : public file
 {
     private:
-    string _filename;
-    string _path;
-    
     streaminfo _info;
 
     string _title;
@@ -83,20 +84,27 @@ class music
     vector<string> _artist;
         
     public:
-    void setFilename(const string);
-    void setPath(const fs::path);
     
-    void setInfo(const streaminfo);
+    // STREAMINFO
+    void readStreaminfo(fstream&);
 
+    string magic();
+    uint16_t length();
+    uint32_t sampleRate();
+    uint16_t channel();
+    uint16_t spb();
+    uint64_t samples();
+
+    double totalsecs();
+    uint16_t minutes();
+    double seconds();
+
+    // VORBIUS_COMMENT
     void setTitle(const string);
     void setAlbum(const string);
     void setDate(const string);
-    
-    string filename();
-    string path();
 
     streaminfo info();
-
     string title();
     string album();
     string date();
