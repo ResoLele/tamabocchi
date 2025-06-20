@@ -5,7 +5,7 @@ int userInputAction;
 fs::path currentPath;
 string selectedPath;
 string selectedSong;
-vector<file> files;
+vector<music> files;
 
 void osClear(string USER_OS = USER_OS) {
     if (USER_OS == "Windows") {system("clr");}
@@ -19,7 +19,8 @@ enum Action {
                 ACTION_CHANGE_DIR,
                 ACTION_PRINT_FILES,
                 ACTION_PRINT_TAGS,
-                ACTION_PRINT_HEX,
+                ACTION_PRINT_STREAMINFO,
+                ACTION_PRINT_VORBIUS,
             };
 
 int main() {
@@ -31,14 +32,14 @@ int main() {
     if (!dirScan(currentPath)) {
         cout << "No FLAC in this directory! Please change directory." << endl;
     }
-    tagAddTags();
 
     do {
         cout << "Select Action:\n"
                 "(1) Change Directory\n"
                 "(2) Print all music file in this folder\n"
                 "(3) Print all Tags\n"
-                "(4) Print Hex\n"
+                "(4) Print Meta Hex\n"
+                "(5) Print Vorbis Hex\n"
                 "(0) End Task"
         << endl;
     	cin >> userInputAction;
@@ -55,9 +56,13 @@ int main() {
                 osClear();    
                 tagPrintTags();
                 break;
-            case ACTION_PRINT_HEX:
+            case ACTION_PRINT_STREAMINFO:
                 osClear();
-                tagReadHex();
+                tagPrintStreamInfo();
+                break;
+            case ACTION_PRINT_VORBIUS:
+                osClear();
+                tagReadVorbis();
                 break;
             case ACTION_END_TASK:
                 osClear();
