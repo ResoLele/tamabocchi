@@ -1,9 +1,4 @@
-#include <iostream>
-#include <filesystem>
-#include <string>
 #include "define.h"
-
-using namespace std;
 
 // variable declaration
 int userInputAction;
@@ -24,6 +19,7 @@ enum Action {
                 ACTION_CHANGE_DIR,
                 ACTION_PRINT_FILES,
                 ACTION_PRINT_TAGS,
+                ACTION_PRINT_HEX,
             };
 
 int main() {
@@ -42,6 +38,7 @@ int main() {
                 "(1) Change Directory\n"
                 "(2) Print all music file in this folder\n"
                 "(3) Print all Tags\n"
+                "(4) Print Hex\n"
                 "(0) End Task"
         << endl;
     	cin >> userInputAction;
@@ -51,15 +48,19 @@ int main() {
                 currentPath = dirChange();
                 break;
             case ACTION_PRINT_FILES:
-                osClear(USER_OS);
+                osClear();
                 dirPrint(currentPath);
                 break;
             case ACTION_PRINT_TAGS:
-                osClear(USER_OS);    
+                osClear();    
                 tagPrintTags();
                 break;
+            case ACTION_PRINT_HEX:
+                osClear();
+                tagReadHex();
+                break;
             case ACTION_END_TASK:
-                osClear(USER_OS);
+                osClear();
                 cout << "Have a nice day!" << endl;
                 break;
             default:
