@@ -17,49 +17,36 @@ uint32_t readBEHeader(vector<byte> bytes) {
 }
 
 // getter
-string music::magic() {return _info._magic;}
-uint16_t music::length() {return _info._length;}
-uint32_t music::sampleRate() {return _info._sampleRate;}
-uint16_t music::channel() {return _info._channel;}
-uint16_t music::spb() {return _info._spb;}
-uint64_t music::samples() {return _info._samples;}
+string file::magic() {return _magic;}
+uint16_t music::length() {return _streaminfo._length;}
+uint32_t music::sampleRate() {return _streaminfo._sampleRate;}
+uint16_t music::channel() {return _streaminfo._channel;}
+uint16_t music::spb() {return _streaminfo._spb;}
+uint64_t music::samples() {return _streaminfo._samples;}
 
-double music::totalsecs() {return _info._duration._totalsecs;}
-uint16_t music::minutes() {return _info._duration._minutes;}
-double music::seconds() {return _info._duration._seconds;}
+double music::totalsecs() {return _streaminfo._duration._totalsecs;}
+uint16_t music::minutes() {return _streaminfo._duration._minutes;}
+double music::seconds() {return _streaminfo._duration._seconds;}
 
 // Setter
-// Read from file & Set streaminfo
-void music::readStreaminfo(fstream &file) {
-    vector<byte> magicBytes(4);
-    vector<byte> head(4);
-    vector<byte> block;
-    
-    // Read magic (File Header)
-    file.read(reinterpret_cast<char*>(magicBytes.data()), 4);
-    _info._magic = string(reinterpret_cast<const char*>(magicBytes.data()), magicBytes.size());
-
-    // Read Header & Set streaminfo.length
-    file.read(reinterpret_cast<char*>(head.data()), 4);
-    _info._length = readBEHeader(head);
-    block.resize(_info._length);
-    file.read(reinterpret_cast<char*>(block.data()), _info._length);
+// Read from file & Set all
+void music::setStreaminfo(vector<byte> block) {
 
     // Set streaminfo.sampleRate
-    _info._sampleRate = (
+    _streaminfo._sampleRate = (
     (static_cast<uint32_t>(block[10]) << 12) | 
     (static_cast<uint32_t>(block[11]) << 4) |
     (static_cast<uint32_t>(block[12]) >> 4));
 
     // Set streaminfo.channel
-    _info._channel = ((static_cast<uint16_t>(block[12]) & 0x0F) >> 1) + 1;
+    _streaminfo._channel = ((static_cast<uint16_t>(block[12]) & 0x0F) >> 1) + 1;
 
     // Set SPB
-    _info._spb = (
+    _streaminfo._spb = (
     (((static_cast<uint16_t>(block[12]) & 0x01) << 4) | (static_cast<uint16_t>(block[13]) >> 4)) + 1);
 
     // Set Samples
-    _info._samples = (
+    _streaminfo._samples = (
     ((static_cast<uint64_t>(block[13]) & 0x0F) << 32) |
     (static_cast<uint64_t>(block[14]) << 24) |
     (static_cast<uint64_t>(block[15]) << 16) |
@@ -67,20 +54,85 @@ void music::readStreaminfo(fstream &file) {
     (static_cast<uint64_t>(block[17])));
 
     // Set duration
-    _info._duration._totalsecs = static_cast<double>(_info._samples) / static_cast<double>(_info._sampleRate); 
-    _info._duration._minutes = static_cast<int>(_info._duration._totalsecs / 60); 
-    _info._duration._seconds = fmod(_info._duration._seconds, 60.0);
+    _streaminfo._duration._totalsecs = static_cast<double>(_streaminfo._samples) / static_cast<double>(_streaminfo._sampleRate); 
+    _streaminfo._duration._minutes = static_cast<int>(_streaminfo._duration._totalsecs / 60); 
+    _streaminfo._duration._seconds = fmod(_streaminfo._duration._totalsecs, 60.0);
 }
 
-void tagPrintStreamInfo() {
-    for (music &i : files) {  
-        fstream file(i.path(), ios::in);
+void music::setVorbiusComment(vector<byte> block) {
+    // first subblock : vendor 
+    vector<byte> vendorHeader(block.begin(), block.begin() + 4);
+    uint32_t vendorLength = readLEHeader(vendorHeader);
+    vector<byte> vendorBlock(block.begin() + 4, block.begin() + 4 + vendorLength);
+    string vendor(reinterpret_cast<char*>(vendorBlock.data()), vendorBlock.size());
+    _vorbiusComment._vendor = vendor;
     
-        i.readStreaminfo(file);
+    // check how many user comments
+    vector<byte> userCommentHeader(block.begin() + vendorLength + 4, block.begin() + vendorLength + 8);
+    uint32_t userCommentCount = readLEHeader(userCommentHeader);
+    
+    vector<byte> userCommentBlock(block.begin() + vendorLength + 8, block.end());
+
+    // for each block add to idk just print now idfc
+    for (int i = 0; i < userCommentCount; i++) {
+        vector<byte> curCommentHeader(userCommentBlock.begin(), userCommentBlock.begin() + 4);
+        uint32_t curCommentLength = readLEHeader(curCommentHeader);
+        vector<byte> curComment(userCommentBlock.begin() + 4, userCommentBlock.begin() + 4 + curCommentLength);
+        string curCommentStr(reinterpret_cast<char*>(curComment.data()), curComment.size());
+        userCommentBlock.erase(userCommentBlock.begin(), userCommentBlock.begin() + 4 + curCommentLength);
+
+        cout << curCommentStr << '\n';
+    }
+}
+
+void music::setInit() {
+    vector<byte> magicBytes(4);
+    vector<byte> metaHeader(4);
+    vector<byte> metaBlock;
+    fstream file(path(), ios::in);
+    
+    // Read magic (File Header) FUCK YOU NO MAGIC FOR NOW
+    // file.read(reinterpret_cast<char*>(magicBytes.data()), 4);
+    // magic() = string(reinterpret_cast<const char*>(magicBytes.data()), magicBytes.size()); 
+    file.seekg(4, ios::cur);
+
+    // set metadata block until reaches last
+    do {
+        file.read(reinterpret_cast<char*>(metaHeader.data()), 4);
+        uint16_t blockSize = readBEHeader(metaHeader); 
+        metaBlock.resize(blockSize);
+        file.read(reinterpret_cast<char*>(metaBlock.data()), blockSize);
+
+        switch (static_cast<int>(metaHeader[0])) {
+            case block_t::STREAMINFO:
+            _streaminfo._blockSize = blockSize;
+            setStreaminfo(metaBlock);
+            break;
+            
+            case block_t::VORBIUS_COMMENT:
+            _vorbiusComment._blockSize = blockSize;
+            setVorbiusComment(metaBlock);
+            break;
+
+            case block_t::PADDING:
+            case block_t::APPLICATION: 
+            case block_t::SEEKTABLE:
+            case block_t::CUESHEET:
+            case block_t::PICTURE:
+            case block_t::INVALID:
+            break;
+        }
+    } while((static_cast<uint8_t>(metaHeader[0]) & 0xF0) != 0x80); 
+    file.close();
+}
+
+void tagPrintMetadata() {
+    for (music &i : files) {  
+        i.setInit();
         
         cout 
             << setw(30) << "filename: " << i.filename() << '\n'
-            << setw(30) << "magic: " << i.magic() << '\n' 
+            // << setw(30) << "magic: " << i.magic() << '\n' 
             << setw(30) << "Sample Rate: " << dec << i.sampleRate() << '\n'
             << setw(30) << "Channel: " << dec << i.channel() << '\n'
             << setw(30) << "SPB: " << dec << i.spb() << '\n'
@@ -88,80 +140,5 @@ void tagPrintStreamInfo() {
             << setw(30) << "Duration: " << dec << i.totalsecs() << " (" << i.minutes() << ':' << i.seconds() << ')' << '\n';
 
         cout << endl;
-
-        file.close();
     }   
-}
-
-void tagReadVorbis() {
-    for (music i : files) { 
-
-        fstream file(i.path(), ios::in);
-        
-        byte VORBIUS_TYPE = byte{0x04};
-        uint32_t vorbiusLength;
-        vector<byte> vorbiusHeader(4);
-
-        file.seekg(42, ios::beg);
-
-        file.read(reinterpret_cast<char*>(vorbiusHeader.data()), 4);
-        
-        for (int i = 0; i < 4; i++) {
-            cout << hex << static_cast<int>(vorbiusHeader[i]);
-        }
-
-        cout << dec;
-
-        if (vorbiusHeader[0] == VORBIUS_TYPE) {
-            cout << "Vorbius Type (04) Detected!" << endl; 
-            vorbiusLength = readBEHeader(vorbiusHeader);
-        }
-        
-        cout << "Vorbius comment Length: " << vorbiusLength << '\n';
-        
-        // Vendor String
-
-        vector<byte> byteLength(4);
-        file.read(reinterpret_cast<char*>(byteLength.data()), 4);
-        uint16_t vendorLength = readLEHeader(byteLength);
-
-        vector<byte> vendor(vendorLength);
-        file.read(reinterpret_cast<char*>(vendor.data()), vendorLength);
-        for (int i = 0; i < vendorLength; i++) {
-            cout << static_cast<char>(vendor[i]);
-        }
-        cout << endl;
-        
-        vector<byte> byteCommentCount(4);
-        file.read(reinterpret_cast<char*>(byteCommentCount.data()), 4);
-        uint32_t commentCount = readLEHeader(byteCommentCount);
-        
-        cout << "Number of comments: " << commentCount << '\n';    
-            // Comments
-        for (int i = 0; i < commentCount; i++) {
-            vector<byte> byteCommentSize(4);
-            file.read(reinterpret_cast<char*>(byteCommentSize.data()), 4);
-            uint32_t commentSize = readLEHeader(byteCommentSize);
-            vector<byte> commentText(commentSize);
-            file.read(reinterpret_cast<char*>(commentText.data()), commentSize);
-            
-            for (int j = 0; j < commentSize; j++) {
-                cout << static_cast<char>(commentText[j]);
-            }
-            cout << '\n';
-        }
-        
-        cout << endl;
-        
-        file.close();
-    }
-}
-
-void tagPrintTags() {
-    for (music i : files) {
-        cout << "Title:\t\t" << i.title() << endl;
-        cout << "Album:\t\t" << i.album() << endl;
-        cout << endl;
-    }
-    cout << endl;
 }

@@ -32,7 +32,7 @@ void dirPrint(fs::path);
 uint32_t readBEHeader(vector<byte>);
 uint32_t readLEHeader(vector<byte>);
 
-void tagPrintStreamInfo();
+void tagPrintMetadata();
 void tagReadVorbis();
 void tagPrintTags();
 
@@ -40,6 +40,7 @@ class file
 {
     private:
     string _filename;
+    string _magic;
     fs::path _path;
 
     public:
@@ -47,6 +48,7 @@ class file
     void setPath(const fs::path);
 
     string filename();
+    string magic();
     fs::path path();
 };
 
@@ -58,9 +60,25 @@ struct duration
     double _seconds;
 };
 
-struct streaminfo
+enum block_t {
+    STREAMINFO = 0x00,
+    PADDING = 0x01,
+    APPLICATION = 0x02,
+    SEEKTABLE = 0x03,
+    VORBIUS_COMMENT = 0x04,
+    CUESHEET = 0x05,
+    PICTURE = 0x06,
+    INVALID = 0x07,
+};
+
+struct metadata
 {
-    string _magic;
+    block_t _block_type;
+    uint16_t _blockSize;
+};
+
+struct streaminfo : metadata
+{
     duration _duration;
     uint16_t _length;
     uint32_t _sampleRate;
@@ -69,24 +87,42 @@ struct streaminfo
     uint64_t _samples;
 };
 
-class music : public file
+struct vorbiusComment : metadata
 {
-    private:
-    streaminfo _info;
+    string _vendor;
 
+    uint8_t _size;
+    uint8_t _tracknumber;
+    uint8_t _totaltrack;
+    uint8_t _discnumber;
+    uint8_t _totaldiscs;
+    
     string _title;
     string _album;
+    string _albumartist;
     string _date;
-    
+
+    string _catalog;
+    string _label;
+
+    vector<string> _artist;
     vector<string> _composer;
     vector<string> _type;
     vector<string> _genre;
-    vector<string> _artist;
-        
-    public:
+};
+
+class music : public file
+{
+    private:
+    streaminfo _streaminfo;
+    vorbiusComment _vorbiusComment;
     
-    // STREAMINFO
-    void readStreaminfo(fstream&);
+    public:
+    byte VORBIUS_TYPE = byte{0x04};
+
+    void setInit();
+    void setStreaminfo(vector<byte>);
+    void setVorbiusComment(vector<byte>);
 
     string magic();
     uint16_t length();
@@ -99,23 +135,13 @@ class music : public file
     uint16_t minutes();
     double seconds();
 
-    // VORBIUS_COMMENT
-    void setTitle(const string);
-    void setAlbum(const string);
-    void setDate(const string);
-
     streaminfo info();
+    vorbiusComment comment();
     string title();
     string album();
     string date();
 };
 
 extern vector<music> files;
-
-string readFileHeader(fstream&);
-streaminfo readStreaminfo(fstream&);
-
-void readVendorHeader(fstream);
-void readVorbiusHeader(fstream);
 
 #endif

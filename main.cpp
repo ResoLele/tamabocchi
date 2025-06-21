@@ -19,8 +19,6 @@ enum Action {
                 ACTION_CHANGE_DIR,
                 ACTION_PRINT_FILES,
                 ACTION_PRINT_TAGS,
-                ACTION_PRINT_STREAMINFO,
-                ACTION_PRINT_VORBIUS,
             };
 
 int main() {
@@ -38,8 +36,6 @@ int main() {
                 "(1) Change Directory\n"
                 "(2) Print all music file in this folder\n"
                 "(3) Print all Tags\n"
-                "(4) Print Meta Hex\n"
-                "(5) Print Vorbis Hex\n"
                 "(0) End Task"
         << endl;
     	cin >> userInputAction;
@@ -53,16 +49,8 @@ int main() {
                 dirPrint(currentPath);
                 break;
             case ACTION_PRINT_TAGS:
-                osClear();    
-                tagPrintTags();
-                break;
-            case ACTION_PRINT_STREAMINFO:
                 osClear();
-                tagPrintStreamInfo();
-                break;
-            case ACTION_PRINT_VORBIUS:
-                osClear();
-                tagReadVorbis();
+                tagPrintMetadata();
                 break;
             case ACTION_END_TASK:
                 osClear();

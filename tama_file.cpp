@@ -9,13 +9,6 @@ void file::setPath(const fs::path path) {_path = path;}
 string file::filename() {return _filename;}
 fs::path file::path() {return _path;}
 
-void music::setTitle(const string str) {_title = str;}
-void music::setAlbum(const string str) {_album = str;}
-void music::setDate(const string str) {_date = str;}
-string music::title() {return _title;}
-string music::album() {return _album;}
-string music::date() {return _date;}
-
 // Change Directory
 fs::path dirChange() {
 	string userInput;
@@ -35,15 +28,15 @@ fs::path dirChange() {
 
 bool dirScan(fs::path path) {
 
-	int count;
+	int count = 0;
 
-	for (const fs::directory_entry dirEntry : fs::directory_iterator(path)) {
+	for (const fs::directory_entry &dirEntry : fs::directory_iterator(path)) {
 		if (dirEntry.path().extension() == ".flac") {
+			music flac;
 			count++;
-			music music;
-			music.setFilename(dirEntry.path().filename());
-			music.setPath(dirEntry.path());
-			files.push_back(music);
+			flac.setFilename(dirEntry.path().filename());
+			flac.setPath(dirEntry.path());
+			files.push_back(flac);
 		}
 	}
 	return (count > 0);
@@ -51,7 +44,7 @@ bool dirScan(fs::path path) {
 
 void dirPrint(fs::path path) {
 	cout << "File count: "<< files.size() << endl;
-	for (music i : files) {
+	for (music &i : files) {
 		cout << i.filename() << endl;
 	}
 	cout << endl;
