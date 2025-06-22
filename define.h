@@ -3,12 +3,15 @@
 
 #include <iostream>
 #include <fstream>
-#include <bitset>
+// #include <bitset>
+#include <map>
 #include <cmath>
 #include <iomanip>
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <cctype>
+#include <algorithm>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -73,70 +76,45 @@ enum block_t {
 
 struct metadata
 {
-    block_t _block_type;
+    block_t _blockType;
     uint16_t _blockSize;
 };
 
-struct streaminfo : metadata
-{
-    duration _duration;
-    uint16_t _length;
-    uint32_t _sampleRate;
-    uint16_t _channel;
-    uint16_t _spb;
-    uint64_t _samples;
-};
+// Note-to-self: uint32_t is exactly 4 bytes (Header) 
+
+using userComment_t = pair<string, string>;
 
 struct vorbiusComment : metadata
 {
+    uint32_t _vendorHeader; 
     string _vendor;
 
-    uint8_t _size;
-    uint8_t _tracknumber;
-    uint8_t _totaltrack;
-    uint8_t _discnumber;
-    uint8_t _totaldiscs;
-    
-    string _title;
-    string _album;
-    string _albumartist;
-    string _date;
-
-    string _catalog;
-    string _label;
-
-    vector<string> _artist;
-    vector<string> _composer;
-    vector<string> _type;
-    vector<string> _genre;
+    vector<userComment_t> _userComments;
 };
+
 
 class music : public file
 {
     private:
-    streaminfo _streaminfo;
+    vector<byte> _streaminfo;
     vorbiusComment _vorbiusComment;
-    
-    public:
-    byte VORBIUS_TYPE = byte{0x04};
 
+    public:
     void setInit();
     void setStreaminfo(vector<byte>);
     void setVorbiusComment(vector<byte>);
 
-    string magic();
-    uint16_t length();
+    // STREAMINFO
     uint32_t sampleRate();
     uint16_t channel();
-    uint16_t spb();
+    uint16_t bps();
     uint64_t samples();
 
     double totalsecs();
     uint16_t minutes();
     double seconds();
 
-    streaminfo info();
-    vorbiusComment comment();
+    string userComment(string);
     string title();
     string album();
     string date();
