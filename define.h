@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 // #include <bitset>
-#include <map>
+// #include <map>
 #include <cmath>
 #include <iomanip>
 #include <string>
@@ -15,6 +15,8 @@
 
 using namespace std;
 namespace fs = std::filesystem;
+
+void osClear(string);
 
 #if defined(_WIN32) || defined(_WIN64)
 #define OS "win"
@@ -35,7 +37,7 @@ void dirPrint(fs::path);
 uint32_t readBEHeader(vector<byte>);
 uint32_t readLEHeader(vector<byte>);
 
-void tagPrintMetadata();
+void printMetadata();
 void tagReadVorbis();
 void tagPrintTags();
 
@@ -100,6 +102,7 @@ class music : public file
     vorbiusComment _vorbiusComment;
 
     public:
+
     void setInit();
     void setStreaminfo(vector<byte>);
     void setVorbiusComment(vector<byte>);
@@ -114,6 +117,8 @@ class music : public file
     uint16_t minutes();
     double seconds();
 
+    string userCommentField(unsigned int);
+    unsigned int userCommentCount();
     string userComment(string);
     string title();
     string album();
@@ -122,4 +127,4 @@ class music : public file
 
 extern vector<music> files;
 
-#endif
+#endif // DEFINE_H

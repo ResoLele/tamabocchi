@@ -63,6 +63,14 @@ double music::seconds() {
 	return fmod(totalsecs(), 60.0);
 }
 
+unsigned int music::userCommentCount() {
+	return _vorbiusComment._userComments.size();
+}
+
+string music::userCommentField(unsigned int keyPos) {
+	return _vorbiusComment._userComments[keyPos].first;
+} 
+
 string music::userComment(string field) {
 	for (userComment_t i : _vorbiusComment._userComments) {
 		if (i.first == field) {
@@ -112,15 +120,6 @@ void music::setVorbiusComment(vector<byte> block) {
 		string content = curCommentStr.substr(fieldLength + 1);
 
 		_vorbiusComment._userComments.push_back({field, content});
-		// _vorbiusComment._userComment[curCommentStr.substr(0, fieldLength), curCommentStr.substr(fieldLength + 1)];
-
-		// vorbiusComment::userComment comment;
-		// comment._field = curCommentStr.substr(0, fieldLength);
-		// comment._content = curCommentStr.substr(fieldLength + 1);
-		// _vorbiusComment._comments.push_back(comment);
-
-		// cout << setw(30) << _vorbiusComment._userComments[i].first << ": ";
-		// cout << _vorbiusComment._userComments[i].second << '\n';
 	}
 }
 
@@ -162,27 +161,26 @@ void music::setInit() {
 	file.close();
 }
 
-void tagPrintMetadata() {
+void printMetadata() {
 	vector<string> userCommentFields = {};
 	for (music &i : files) {  
 		i.setInit();		
 		cout
-			<< "====================================================================================================" << '\n'
-			<< setw(30) << "filename: " << i.filename() << '\n'
-			<< setw(30) << "Sample Rate: " << dec << i.sampleRate() << '\n'
-			<< setw(30) << "Channel: " << dec << i.channel() << '\n'
-			<< setw(30) << "bps: " << dec << i.bps() << '\n'
-			<< setw(30) << "Total Samples: " << dec << i.samples() << '\n'
-			<< setw(30) << "Duration: " << dec << i.totalsecs() << " (" << i.minutes() << ':' << i.seconds() << ')' << '\n'
-			<< '\n'
+			<< "====================================================================================================\n"
+			<< setw(30) << "Filename" << ": " << i.filename() << '\n'
+			<< setw(30) << "Path" << ": " << i.path() << '\n'
+			<< setw(30) << "Sample Rate" << ": " << i.sampleRate() << '\n'
+			<< setw(30) << "Channel" << ": " << i.channel() << '\n'
+			<< setw(30) << "Bits per sample" << ": " << i.bps() << '\n'
+			<< setw(30) << "Total Samples" << ": " << i.samples() << '\n'
+			<< setw(30) << "Duration" << ": " << i.totalsecs() << " (" << i.minutes() << ':' << i.seconds() << ')' << '\n'
+			<< "\nUSER COMMENT SECTION:"
+			<< '\n';
 
 			// Modular User Comment
-			<< setw(30) << "Title: " << i.userComment("TITLE") << '\n'
-			<< setw(30) << "Artist: " << i.userComment("ARTIST") << '\n'
-			<< setw(30) << "Album: " << i.userComment("ALBUM") << '\n'
-			<< setw(30) << "Date: " << i.userComment("DATE") << '\n'
-			<< "====================================================================================================";
-
-		cout << endl;
+			for (int j = 0; j < i.userCommentCount(); j++) {
+				cout << setw(30) << i.userCommentField(j) << ": " << i.userComment(i.userCommentField(j)) << '\n'; 
+			}
+		cout << "====================================================================================================\n" << endl;
 	}   
 }

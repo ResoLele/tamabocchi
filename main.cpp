@@ -19,11 +19,13 @@ enum Action {
                 ACTION_CHANGE_DIR,
                 ACTION_PRINT_FILES,
                 ACTION_PRINT_TAGS,
+                ACTION_CLEAR_HISTORY,
             };
 
 int main() {
 
     // Initialize Path
+    osClear();
     cout << USER_OS << " detected." << endl;
     currentPath = dirChange();
     cout << "Current Path: " << currentPath << endl;
@@ -36,13 +38,17 @@ int main() {
                 "(1) Change Directory\n"
                 "(2) Print all music file in this folder\n"
                 "(3) Print all Tags\n"
+                "(4) Clear History\n"
                 "(0) End Task"
         << endl;
     	cin >> userInputAction;
+        cin.ignore();
 
         switch (userInputAction) {
             case ACTION_CHANGE_DIR:
+                osClear();    
                 currentPath = dirChange();
+                dirScan(currentPath);
                 break;
             case ACTION_PRINT_FILES:
                 osClear();
@@ -50,7 +56,11 @@ int main() {
                 break;
             case ACTION_PRINT_TAGS:
                 osClear();
-                tagPrintMetadata();
+                printMetadata();
+                break;
+            case ACTION_CLEAR_HISTORY:
+                osClear();
+                cout << "CLEARED!" << endl; 
                 break;
             case ACTION_END_TASK:
                 osClear();

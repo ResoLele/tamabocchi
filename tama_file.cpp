@@ -17,6 +17,7 @@ fs::path dirChange() {
 		cout << "Enter Path: (Leave empty using current path)" << endl;
 		getline(cin, userInput);
 		if (!userInput.length()) {
+			osClear(USER_OS);
 			cout << "Using current path" << endl;
 			return (fs::current_path() / "music");
 		}

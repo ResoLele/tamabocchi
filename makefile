@@ -1,5 +1,12 @@
-main: main.cpp
-	g++ -std=c++20 $@.cpp tama_file.cpp tama_tag.cpp -o $@
+CXX = g++
+CXXFLAGS = -g
+FILES = main.cpp tama_file.cpp tama_tag.cpp
+
+main: $(FILES)
+	$(CXX) $(CXXFLAGS) -std=c++20 $(FILES) -o $@
+
+run: main
+	./main
 
 clean:
-	rm main
+	rm -f main
