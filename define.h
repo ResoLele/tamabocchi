@@ -94,7 +94,6 @@ struct vorbiusComment : metadata
     vector<userComment_t> _userComments;
 };
 
-
 class music : public file
 {
     private:
@@ -124,6 +123,8 @@ class music : public file
     string album();
     string date();
 };
+
+void clearHistory(vector<music>);
 
 extern vector<music> files;
 

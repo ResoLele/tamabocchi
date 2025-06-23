@@ -60,6 +60,7 @@ int main() {
                 break;
             case ACTION_CLEAR_HISTORY:
                 osClear();
+                files.clear();
                 cout << "CLEARED!" << endl; 
                 break;
             case ACTION_END_TASK:
