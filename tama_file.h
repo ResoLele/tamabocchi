@@ -34,7 +34,7 @@ class file
 	file_ext extension() const;
 };
 
-void changeDirectory(file_path&, const file_path);
+// void changeDirectory(file_path&, const file_path);
 void scanDirectory(vector<file>&, const file_path);
 void listFiles(const vector<file>&);
 

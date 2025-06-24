@@ -17,12 +17,12 @@
 
 #include "tama_file.h"
 #include "tama_tag.h"
+#include "tama_user.h"
 
 using namespace std;
 namespace fs = std::filesystem;
 
-const string USER_OS = OS;
-
 void clearConsole();
+song& promptSelectSong(user&);
 
 #endif // DEFINE_H

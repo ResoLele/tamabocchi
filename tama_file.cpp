@@ -33,18 +33,7 @@ void file::write(const vector<byte> bytes) {
 void file::save() {
 	fstream newFile(path(), ios::out);
 	
-	// newFile << "Hello world!";
-
 	newFile.close();
-}
-
-void changeDirectory(file_path &oldPath, const file_path newPath) {
-
-	if (fs::exists(newPath)) {
-		oldPath = newPath;
-		return;
-	}
-	cerr << "Path does not exist!" << endl;
 }
 
 void scanDirectory(vector<file> &files, const file_path path) {
