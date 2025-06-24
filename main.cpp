@@ -22,7 +22,10 @@ enum action
 	ACTION_CHANGE_DIR,
 	ACTION_LIST_FILES,
 	ACTION_LIST_MUSICS,
-	ACTION_PRINT_TAGS
+	ACTION_PRINT_TAGS,
+	ACTION_EDIT_COMMENT,
+	ACTION_SORT_COMMENT,
+	ACTION_ENCODE
 };
 
 int main() {
@@ -36,9 +39,12 @@ int main() {
         cout << 
 		"Select Action:\n"
 		"(1) Change Directory\n"
-		"(2) Print all files in current directory\n"
-		"(3) Print all songs in current directory\n"
+		"(2) Scan all files in current directory\n"
+		"(3) Scan all songs in current directory\n"
 		"(4) Print tags in songs\n"
+		"(5) Edit user comment in songs\n"
+		"(6) Sort user comment\n"
+		"(7) Encode\n"
 		"(0) End Task"
         << endl;
 	
@@ -56,23 +62,80 @@ int main() {
 				cout << "Current Path: " << userPath << endl;
 				break;
 			}
+			
 			case ACTION_LIST_FILES: {
 				clearConsole();
 				scanDirectory(userFiles, userPath);
 				listFiles(userFiles);
 				break;
 			}
+			
 			case ACTION_LIST_MUSICS: {
 				clearConsole();
 				scanSongs(userSongs, userFiles);
 				listSongs(userSongs);
 				break;
 			}
+			
 			case ACTION_PRINT_TAGS: {
 				clearConsole();
 				for (song &m : userSongs) {
 					m.listMetadata();
 				}
+				break;
+			}
+			
+			case ACTION_EDIT_COMMENT: {
+				int inputIndex;
+				user_comment newUserComment;
+				newUserComment._isModified = true;
+
+				clearConsole();
+				listSongs(userSongs);
+				cout << "Select song: " << endl;
+				cin >> inputIndex;
+				cin.ignore();
+				clearConsole();
+				userSongs[inputIndex - 1].listVorbiusComment();
+				
+				cout << "\nEnter field: " << endl;
+				getline(cin, newUserComment._field);
+				
+				cout << "\nEnter Content: " << endl;
+				getline(cin, newUserComment._content);
+				
+				clearConsole();
+				cout << "New user comment: " << newUserComment._field << ": " << newUserComment._content << endl;
+				
+				userSongs[inputIndex - 1].editUserComment(newUserComment);
+				userSongs[inputIndex - 1].listVorbiusComment();
+				
+				cout << '\n';
+				break;
+			}
+			
+			case ACTION_SORT_COMMENT: {
+				break;
+			}
+			
+			case ACTION_ENCODE: {
+				int inputIndex;
+				
+				clearConsole();
+				listSongs(userSongs);
+				cout << "Select song: " << endl;
+				cin >> inputIndex;
+				cin.ignore();
+				clearConsole();
+				
+				song &selectedSong = userSongs[inputIndex - 1];
+
+				// selectedSong.setVorbiusComment(selectedSong.encodeVorbiusComment());
+				
+				// selectedSong.listVorbiusComment();
+
+				selectedSong.encodeMetadata();
+				
 				break;
 			}
 		}

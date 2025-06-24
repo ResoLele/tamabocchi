@@ -25,6 +25,8 @@ class file
 	void setPath(const file_path);
 	void setExtension(const file_ext);
 
+	void write(const vector<byte>);
+
 	file_name name() const;
 	file_path path() const;
 	file_ext extension() const;
