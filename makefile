@@ -7,7 +7,7 @@ main: $(MAIN) $(OBJS)
 	$(CXX) $(CXXFLAGS) -std=c++20 $(MAIN) $(OBJS) -o $@
 
 tama_file.o: tama_file.cpp
-tama_new_tag.o: tama_new_tag.cpp
+tama_tag.o: tama_tag.cpp
 	$(CXX) -c $<
 
 run: main
