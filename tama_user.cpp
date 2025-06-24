@@ -1,40 +1,40 @@
 #include "tama_user.h"
 
-user::user() {
+User::User() {
 	_songs.clear();
 
 	changeDirectory(DEFAULT_PATH);
 	scanDirectory();
 }
 
-file_path user::currentPath() {
+FilePath User::currentPath() {
 	return _path;
 }
 
-void user::changeDirectory(const file_path newPath) {
+void User::changeDirectory(const FilePath newPath) {
 	if (fs::exists(newPath)) {
 		_path = newPath;
 	}
 }
 
-void user::listDirectory() {
+void User::listDirectory() {
 	cout << "Total Song(s): " << (_songs.size()) << '\n';
-	for (const song &currentFile : _songs) {
+	for (const Song &currentFile : _songs) {
 		cout << currentFile.name() << '\n';
 	}
 	cout << endl;
 }
 
-song& user::selectSong(const int inputIndex) {
+Song& User::song(const int inputIndex) {
 	return _songs[inputIndex];
 }
 
-void user::scanDirectory() {
+void User::scanDirectory() {
 	_songs.clear();
 
 	for (const fs::directory_entry &entry : fs::directory_iterator(_path)) {
 		if (entry.path().extension() == ".flac") {
-			song newSong;
+			Song newSong;
 			newSong.setName(entry.path().filename());
 			newSong.setPath(entry.path());
 			newSong.setExtension(entry.path().extension());

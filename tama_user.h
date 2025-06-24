@@ -8,24 +8,23 @@
 
 using namespace std;
 
-const file_path DEFAULT_PATH = fs::current_path() / "music";
+const FilePath DEFAULT_PATH = fs::current_path() / "music";
 
-class user
-{
+class User {
 	private:
-	file_path _path;
-	vector<song> _songs;
+	FilePath _path;
+	vector<Song> _songs;
 
 	public:
-	user();
+	User();
 	
-	file_path currentPath();
+	FilePath currentPath();
 	void listDirectory();
 	
 	void scanDirectory();
-	void changeDirectory(const file_path);
+	void changeDirectory(const FilePath);
 	
-	song& selectSong(const int);
+	Song& song(const int);
 };
 
 #endif // TAMA_USER_H

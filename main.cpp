@@ -1,9 +1,6 @@
 #include "define.h"
 
-int userAction;
-file_path userPath;
-vector<file> userFiles;
-vector<song> userSongs;
+const size_t BUFFER_SIZE = 4096;
 
 void clearConsole() {
 	if (OS == "win") {
@@ -14,19 +11,18 @@ void clearConsole() {
 	}
 }
 
-song& promptSelectSong(user& user) {
-	int inputIndex;
+Song& promptSelectSong(User& user) {
+	int input;
 	
 	user.listDirectory();
 	cout << "Select song by index: ";
-	cin >> inputIndex;
+	cin >> input;
 	cin.ignore();
 	
-	return user.selectSong(inputIndex - 1);
+	return user.song(input - 1);
 }
 
-enum action 
-{
+enum Action {
 	ACTION_END_TASK,
 	ACTION_CHANGE_DIR,
 	ACTION_LIST_SONGS,
@@ -38,7 +34,9 @@ enum action
 };
 
 int main() {
-	user user;
+	int action;
+
+	User user;
 	clearConsole();
 	
 	cout 
@@ -54,21 +52,21 @@ int main() {
 		"(0) End Task"
         << endl;
 	
-		cin >> userAction;
+		cin >> action;
 		cin.ignore();
 
-		switch (userAction) {
+		switch (action) {
 			case ACTION_CHANGE_DIR: {
 				clearConsole();
-				string inputPath;
+				string path;
 				cout << "Input Path: " << endl;
-				getline(cin, inputPath);
-				if(!fs::exists(fs::path(inputPath))) {
+				getline(cin, path);
+				if(!fs::exists(fs::path(path))) {
 					cout << "PATH DOES NOT EXIST" << endl;
 					cout << "Current Path: " << user.currentPath() << endl;
 					break;
 				};
-				user.changeDirectory(fs::path(inputPath));
+				user.changeDirectory(fs::path(path));
 				user.scanDirectory();
 				cout << "Current Path: " << user.currentPath() << endl;
 				break;
@@ -82,31 +80,31 @@ int main() {
 			
 			case ACTION_PRINT_TAGS: {
 				clearConsole();
-				song& selectedSong = promptSelectSong(user);
+				Song& song = promptSelectSong(user);
 				clearConsole();
-				selectedSong.listMetadata();
+				song.listMetadata();
 				break;
 			}
 			
 			case ACTION_EDIT_COMMENT: {
-				user_comment newUserComment;
-				newUserComment._isModified = true;
+				UserComment userComment;
+				userComment._isModified = true;
 
 				clearConsole();
-				song& selectedSong = promptSelectSong(user);
+				Song& selectedSong = promptSelectSong(user);
 				clearConsole();
 				selectedSong.listVorbiusComment();
 				
 				cout << "\nEnter field: " << endl;
-				getline(cin, newUserComment._field);
+				getline(cin, userComment._field);
 				
 				cout << "\nEnter Content: " << endl;
-				getline(cin, newUserComment._content);
+				getline(cin, userComment._content);
 				
 				clearConsole();
-				cout << "New user comment: " << newUserComment._field << ": " << newUserComment._content << endl;
+				cout << "New user comment: " << userComment._field << ": " << userComment._content << endl;
 				
-				selectedSong.editUserComment(newUserComment);
+				selectedSong.editUserComment(userComment);
 				selectedSong.listVorbiusComment();
 				
 				cout << '\n';
@@ -119,12 +117,12 @@ int main() {
 		
 			case ACTION_SAVE_AS_NEW: {
 				clearConsole();
-				song& selectedSong = promptSelectSong(user);
+				Song& song = promptSelectSong(user);
 				clearConsole();
 				
-				vector<byte> metadatas = selectedSong.encodeMetadata();
+				vector<byte> metadatas = song.encodeMetadata();
 
-				fstream iStreamFile(selectedSong.path(), ios::in);
+				fstream iStreamFile(song.path(), ios::in);
 				iStreamFile.seekg(metadatas.size(), ios::beg);
 				
 				fstream oStreamFile(DEFAULT_PATH / "test.flac", ios::out);
@@ -142,7 +140,7 @@ int main() {
 				break;
 			}
 		}
-	} while (userAction != ACTION_END_TASK);
+	} while (action != ACTION_END_TASK);
 	
 	return 0;
 }

@@ -1,45 +1,45 @@
 #include "tama_file.h"
 
-void file::setName(const file_name name) {
+void File::setName(const FileName name) {
 	_name = name;
 }
 
-void file::setPath(const file_path path) {
+void File::setPath(const FilePath path) {
 	_path = path;
 }
 
-void file::setExtension(const file_ext extension) {
+void File::setExtension(const FileExtension extension) {
 	_extension = extension;
 }
 
-file_name file::name() const {
+FileName File::name() const {
 	return _name;
 }
 
-file_path file::path() const {
+FilePath File::path() const {
 	return _path;
 }
 
-file_ext file::extension() const {
+FileExtension File::extension() const {
 	return _extension;
 }
 
-void file::write(const vector<byte> bytes) {
+void File::write(const vector<byte> bytes) {
 	fstream writeFile(path(), ios::out);
 	writeFile.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 	writeFile.close();
 }
 
-void file::save() {
+void File::save() {
 	fstream newFile(path(), ios::out);
 	
 	newFile.close();
 }
 
-void scanDirectory(vector<file> &files, const file_path path) {
+void scanDirectory(vector<File> &files, const FilePath path) {
 	files.clear();
 	for (const fs::directory_entry &entry : fs::directory_iterator(path)) {
-		file f;
+		File f;
 		f.setName(entry.path().filename());
 		f.setPath(entry.path());
 		f.setExtension(entry.path().extension());
@@ -47,9 +47,9 @@ void scanDirectory(vector<file> &files, const file_path path) {
 	}
 }
 
-void listFiles(const vector<file> &files) {
+void listFiles(const vector<File> &files) {
 	cout << "Total File(s): " << files.size() << '\n';
-	for (const file &i : files) {
+	for (const File &i : files) {
 		cout << i.name() << '\n';
 	}
 	cout << endl;

@@ -7,7 +7,7 @@
 #define OS "mac"
 #elif defined(__linux__)
 #define OS "linux"
-#endif
+#endif // OS_CHECK
 
 #include <iostream>
 #include <iomanip>
@@ -23,6 +23,6 @@ using namespace std;
 namespace fs = std::filesystem;
 
 void clearConsole();
-song& promptSelectSong(user&);
+Song& promptSelectSong(User&);
 
 #endif // DEFINE_H
