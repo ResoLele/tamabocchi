@@ -1,78 +1,82 @@
 #include "define.h"
 
-// variable declaration
-int userInputAction;
-fs::path currentPath;
-string selectedPath;
-string selectedSong;
-vector<music> files;
+const file_path DEFAULT_PATH = fs::current_path() / "music";
 
-void osClear(string USER_OS = USER_OS) {
-    if (USER_OS == "Windows") {system("clr");}
-    else {system("clear");}
-    return;
+int userAction;
+file_path userPath;
+vector<file> userFiles;
+vector<song> userSongs;
+
+void clearConsole() {
+	if (OS == "win") {
+		system("clr");
+	}
+	else {
+		system("clear");
+	}
 }
 
-// Action Enum
-enum Action {   
-                ACTION_END_TASK,
-                ACTION_CHANGE_DIR,
-                ACTION_PRINT_FILES,
-                ACTION_PRINT_TAGS,
-                ACTION_CLEAR_HISTORY,
-            };
+enum action 
+{
+	ACTION_END_TASK,
+	ACTION_CHANGE_DIR,
+	ACTION_LIST_FILES,
+	ACTION_LIST_MUSICS,
+	ACTION_PRINT_TAGS
+};
 
 int main() {
+	clearConsole();
+	changeDirectory(userPath, DEFAULT_PATH);
+	scanDirectory(userFiles, userPath);
 
-    // Initialize Path
-    osClear();
-    cout << USER_OS << " detected." << endl;
-    currentPath = dirChange();
-    cout << "Current Path: " << currentPath << endl;
-    if (!dirScan(currentPath)) {
-        cout << "No FLAC in this directory! Please change directory." << endl;
-    }
-
-    do {
-        cout << "Select Action:\n"
-                "(1) Change Directory\n"
-                "(2) Print all music file in this folder\n"
-                "(3) Print all Tags\n"
-                "(4) Clear History\n"
-                "(0) End Task"
+	cout 
+	<< "Current Path: " << userPath << endl;
+	do {
+        cout << 
+		"Select Action:\n"
+		"(1) Change Directory\n"
+		"(2) Print all files in current directory\n"
+		"(3) Print all songs in current directory\n"
+		"(4) Print tags in songs\n"
+		"(0) End Task"
         << endl;
-    	cin >> userInputAction;
-        cin.ignore();
+	
+		cin >> userAction;
+		cin.ignore();
 
-        switch (userInputAction) {
-            case ACTION_CHANGE_DIR:
-                osClear();    
-                currentPath = dirChange();
-                dirScan(currentPath);
-                break;
-            case ACTION_PRINT_FILES:
-                osClear();
-                dirPrint(currentPath);
-                break;
-            case ACTION_PRINT_TAGS:
-                osClear();
-                printMetadata();
-                break;
-            case ACTION_CLEAR_HISTORY:
-                osClear();
-                files.clear();
-                cout << "CLEARED!" << endl; 
-                break;
-            case ACTION_END_TASK:
-                osClear();
-                cout << "Have a nice day!" << endl;
-                break;
-            default:
-                cerr << "Invaild Action." << endl;
-                break;
-        }
-        
-    } while (userInputAction != ACTION_END_TASK);
-    
-    return 0;
+		switch (userAction) {
+			case ACTION_CHANGE_DIR: {
+				clearConsole();
+				string newPath;
+				cout << "Input Path: " << endl;
+				getline(cin, newPath);
+				changeDirectory(userPath, fs::path(newPath));
+				clearConsole();
+				cout << "Current Path: " << userPath << endl;
+				break;
+			}
+			case ACTION_LIST_FILES: {
+				clearConsole();
+				scanDirectory(userFiles, userPath);
+				listFiles(userFiles);
+				break;
+			}
+			case ACTION_LIST_MUSICS: {
+				clearConsole();
+				scanSongs(userSongs, userFiles);
+				listSongs(userSongs);
+				break;
+			}
+			case ACTION_PRINT_TAGS: {
+				clearConsole();
+				for (song &m : userSongs) {
+					m.listMetadata();
+				}
+				break;
+			}
+		}
+	} while (userAction != ACTION_END_TASK);
+	
+	return 0;
 }

@@ -1,78 +1,69 @@
-#include "define.h"
+#include "tama_tag.h"
 
-// helper functions
-uint32_t readLEHeader(vector<byte> bytes) {
-	return 
-	static_cast<uint8_t>(bytes[0]) |
-	static_cast<uint8_t>(bytes[1]) << 8 |
-	static_cast<uint8_t>(bytes[2]) << 16 |
-	static_cast<uint8_t>(bytes[3]) << 24;
-}
-
-uint32_t readBEHeader(vector<byte> bytes) {
+length readBEHeader(const header inputHeader) {
 	return
-	static_cast<uint8_t>(bytes[1]) << 16 |
-	static_cast<uint8_t>(bytes[2]) << 8 |
-	static_cast<uint8_t>(bytes[3]);
+	static_cast<uint8_t>(inputHeader[1]) << 16 |
+	static_cast<uint8_t>(inputHeader[2]) << 8 |
+	static_cast<uint8_t>(inputHeader[3]);
 }
 
-// getter
-string file::magic() {return _magic;}
+length readLEHeader(const header inputHeader) {
+	return
+	static_cast<uint8_t>(inputHeader[0]) |
+	static_cast<uint8_t>(inputHeader[1]) << 8 |
+	static_cast<uint8_t>(inputHeader[2]) << 16 |
+	static_cast<uint8_t>(inputHeader[3]) << 24;
+}
 
-uint32_t music::sampleRate() {
-	return (
+sample_rate song::sampleRate() {
+	return
 	(static_cast<uint8_t>(_streaminfo[10]) << 12) | 
 	(static_cast<uint8_t>(_streaminfo[11]) << 4) |
-	(static_cast<uint8_t>(_streaminfo[12]) >> 4)
-	);
+	(static_cast<uint8_t>(_streaminfo[12]) >> 4);
 }
 
-// I don't fucking know why using uint8_t does not work
-uint16_t music::channel() {
-	return (
-	((static_cast<uint8_t>(_streaminfo[12]) & 0x0F) >> 1) + 1
-	);
+channel_count song::channel() {
+	return
+	((static_cast<uint8_t>(_streaminfo[12]) & 0x0F) >> 1) + 1;
 }
 
-uint16_t music::bps() {
-	return (
+bits_per_sample song::bps() {
+	return
 	(((static_cast<uint8_t>(_streaminfo[12]) & 0x01) << 4) | 
-	(static_cast<uint8_t>(_streaminfo[13]) >> 4)) + 1
-	);
+	(static_cast<uint8_t>(_streaminfo[13]) >> 4)) + 1;
 }
 
-uint64_t music::samples() {
-	return (
+samples_count song::totalSamples() {
+	return
 	((static_cast<uint64_t>(_streaminfo[13]) & 0x0F) << 32) |
 	(static_cast<uint32_t>(_streaminfo[14]) << 24) |
 	(static_cast<uint16_t>(_streaminfo[15]) << 16) |
 	(static_cast<uint8_t>(_streaminfo[16]) << 8)  |
-	(static_cast<uint8_t>(_streaminfo[17]))
-	);
+	(static_cast<uint8_t>(_streaminfo[17]));
 }
 
-double music::totalsecs() {
-	return static_cast<double>(samples()) / static_cast<double>(sampleRate());
+time_secs song::totalSecs() {
+	return static_cast<double>(totalSamples()) / static_cast<double>(sampleRate());
 }
 
-uint16_t music::minutes() {
-	return static_cast<int>(totalsecs() / 60); 
+time_mins song::minutes() {
+	return static_cast<int>(totalSecs() / 60); 
 }
 
-double music::seconds() {
-	return fmod(totalsecs(), 60.0);
+time_secs song::seconds() {
+	return fmod(totalSecs(), 60.0);
 }
 
-unsigned int music::userCommentCount() {
+size_t song::userCommentCount() {
 	return _vorbiusComment._userComments.size();
 }
 
-string music::userCommentField(unsigned int keyPos) {
-	return _vorbiusComment._userComments[keyPos].first;
-} 
+string song::userCommentField(const uint32_t pos) {
+	return _vorbiusComment._userComments[pos].first;
+}
 
-string music::userComment(string field) {
-	for (userComment_t i : _vorbiusComment._userComments) {
+string song::userCommentContent(const string field) {
+	for (user_comment i : _vorbiusComment._userComments) {
 		if (i.first == field) {
 			return i.second;
 		}
@@ -80,107 +71,115 @@ string music::userComment(string field) {
 	return "NOT FOUND!";
 }
 
-// Setter
-void music::setStreaminfo(vector<byte> block) {_streaminfo = block;}
+void song::setStreaminfo(const body inputBody) {
+	_streaminfo = inputBody;
+}
 
-// Read from file & Set all
-void music::setVorbiusComment(vector<byte> block) {
-	// first subblock : vendor 
-	vector<byte> vendorHeader(block.begin(), block.begin() + 4);
-	uint32_t vendorLength = readLEHeader(vendorHeader);
-	vector<byte> vendorBlock(block.begin() + 4, block.begin() + 4 + vendorLength);
-	string vendor(reinterpret_cast<char*>(vendorBlock.data()), vendorBlock.size());
+void song::setVorbiusComment(const body inputBody) {
+	header vendorHeader(inputBody.begin(), inputBody.begin() + HEADER_SIZE);
+	length vendorLength = readLEHeader(vendorHeader);
+	
+	body vendorBody(inputBody.begin() + HEADER_SIZE, inputBody.begin() + HEADER_SIZE + vendorLength);
+	string vendor(reinterpret_cast<char*>(vendorBody.data()), vendorBody.size());
+	_vorbiusComment._vendorHeader = vendorHeader;
 	_vorbiusComment._vendor = vendor;
-	
-	// check how many user comments
-	vector<byte> userCommentHeader(block.begin() + vendorLength + 4, block.begin() + vendorLength + 8);
-	uint32_t userCommentCount = readLEHeader(userCommentHeader);
-	
-	vector<byte> userCommentBlock(block.begin() + vendorLength + 8, block.end());
 
-	// Store each user comment block into userComment structure
-	// then store all as a vector
-	for (int i = 0; i < userCommentCount; i++) {
-		// Get those bullshit (DGAF It works now)
-		vector<byte> curCommentHeader(userCommentBlock.begin(), userCommentBlock.begin() + 4);
-		uint32_t curCommentLength = readLEHeader(curCommentHeader);
-		vector<byte> curComment(userCommentBlock.begin() + 4, userCommentBlock.begin() + 4 + curCommentLength);
-		string curCommentStr(reinterpret_cast<char*>(curComment.data()), curComment.size());
-		userCommentBlock.erase(userCommentBlock.begin(), userCommentBlock.begin() + 4 + curCommentLength);
+	header userCommentHeader(inputBody.begin() + HEADER_SIZE + vendorLength, inputBody.begin() + HEADER_SIZE * 2 + vendorLength); 
+	int userCommentCount = readLEHeader(userCommentHeader);
+	body userCommentBody(inputBody.begin() + HEADER_SIZE * 2 + vendorLength, inputBody.end());
 
-		// cout << curCommentStr;
+	for (int i = 0; i < userCommentCount; ++i) {
+		header currentHeader(userCommentBody.begin(), userCommentBody.begin() + HEADER_SIZE);
+		length currentLength = readLEHeader(currentHeader);
+		
+		body currentBody(userCommentBody.begin() + HEADER_SIZE, userCommentBody.begin() + HEADER_SIZE + currentLength);
+		string currentString(reinterpret_cast<char*>(currentBody.data()), currentBody.size());
+		
+		userCommentBody.erase(userCommentBody.begin(), userCommentBody.begin() + HEADER_SIZE + currentLength);
 
-		// real fun begins
-		unsigned int fieldLength = curCommentStr.find('=');
-		// cout << fieldLength;
+		length fieldLength = currentString.find('=');
+		string field = currentString.substr(0, fieldLength);
 
-		string field = curCommentStr.substr(0, fieldLength);
-		// from cppreference (I think it is rough)
+		// from cppreference
 		transform(field.begin(), field.end(), field.begin(), [](unsigned char c){return toupper(c);});
-		string content = curCommentStr.substr(fieldLength + 1);
+		string content = currentString.substr(fieldLength + 1);
 
 		_vorbiusComment._userComments.push_back({field, content});
 	}
 }
 
-void music::setInit() {
-	vector<byte> magicBytes(4);
-	vector<byte> metaHeader(4);
-	vector<byte> metaBlock;
+void song::loadMetadata() {
+	header metadataHeader(4);
+	body metadataBody;
 	fstream file(path(), ios::in);
+
+	file.seekg(SIGNATURE_SIZE, ios::cur);
 	
-	// Skip file header (fLaC)
-	file.seekg(4, ios::cur);
-
-	// set metadata blocks
 	do {
-		file.read(reinterpret_cast<char*>(metaHeader.data()), 4);
-		uint16_t blockSize = readBEHeader(metaHeader); 
-		metaBlock.resize(blockSize);
-		file.read(reinterpret_cast<char*>(metaBlock.data()), blockSize);
+		file.read(reinterpret_cast<char*>(metadataHeader.data()), HEADER_SIZE);
+		length metadataLength = readBEHeader(metadataHeader);
+		metadataBody.resize(metadataLength);
+		file.read(reinterpret_cast<char*>(metadataBody.data()), metadataLength);
 
-		switch (static_cast<int>(metaHeader[0])) {
-			case block_t::STREAMINFO:
-			setStreaminfo(metaBlock);
-			break;
-			
-			case block_t::VORBIUS_COMMENT:
-			_vorbiusComment._blockSize = blockSize;
-			setVorbiusComment(metaBlock);
+		switch (static_cast<int>(metadataHeader[0])) {
+			case STREAMINFO:
+			setStreaminfo(metadataBody);
 			break;
 
-			case block_t::PADDING:
-			case block_t::APPLICATION: 
-			case block_t::SEEKTABLE:
-			case block_t::CUESHEET:
-			case block_t::PICTURE:
-			case block_t::INVALID:
+			case VORBIUS_COMMENT:
+			setVorbiusComment(metadataBody);
+			break;
+
+			case PADDING:
+			case APPLICATION: 
+			case SEEKTABLE:
+			case CUESHEET:
+			case PICTURE:
+			case INVALID:
 			break;
 		}
-	} while((static_cast<uint8_t>(metaHeader[0]) & 0xF0) != 0x80); 
+	} while ((static_cast<uint8_t>(metadataHeader[0]) & 0xF0) != 0x80);
 	file.close();
 }
 
-void printMetadata() {
-	vector<string> userCommentFields = {};
-	for (music &i : files) {  
-		i.setInit();		
-		cout
-			<< "====================================================================================================\n"
-			<< setw(30) << "Filename" << ": " << i.filename() << '\n'
-			<< setw(30) << "Path" << ": " << i.path() << '\n'
-			<< setw(30) << "Sample Rate" << ": " << i.sampleRate() << '\n'
-			<< setw(30) << "Channel" << ": " << i.channel() << '\n'
-			<< setw(30) << "Bits per sample" << ": " << i.bps() << '\n'
-			<< setw(30) << "Total Samples" << ": " << i.samples() << '\n'
-			<< setw(30) << "Duration" << ": " << i.totalsecs() << " (" << i.minutes() << ':' << i.seconds() << ')' << '\n'
-			<< "\nUSER COMMENT SECTION:"
-			<< '\n';
+void song::listMetadata() {
+	cout
+	<< "====================================================================================================\n"
+	<< setw(30) << "Filename" << ": " << name() << '\n'
+	<< setw(30) << "Path" << ": " << path() << '\n'
+	<< setw(30) << "Sample Rate" << ": " << sampleRate() << '\n'
+	<< setw(30) << "Channel" << ": " << channel() << '\n'
+	<< setw(30) << "Bits per sample" << ": " << bps() << '\n'
+	<< setw(30) << "Total Samples" << ": " << totalSamples() << '\n'
+	<< setw(30) << "Duration" << ": " << totalSecs() << " (" << minutes() << ':' << seconds() << ')' << '\n'
+	<< "\nUSER COMMENT SECTION:"
+	<< '\n';
 
-			// Modular User Comment
-			for (int j = 0; j < i.userCommentCount(); j++) {
-				cout << setw(30) << i.userCommentField(j) << ": " << i.userComment(i.userCommentField(j)) << '\n'; 
-			}
-		cout << "====================================================================================================\n" << endl;
-	}   
+	for (int i = 0; i < userCommentCount(); i++) {
+		cout << setw(30) << userCommentField(i) << ": " << userCommentContent(userCommentField(i)) << '\n'; 
+	}
+	cout << "====================================================================================================\n" << endl;
+}
+
+void scanSongs(vector<song>& songs, vector<file>& files) {
+	songs.clear();
+	for (int i = files.size() - 1; i >= 0; --i) {
+		if (files[i].extension() == ".flac") {
+			song m;
+			m.setName(files[i].name());
+			m.setPath(files[i].path());
+			m.setExtension(files[i].extension());
+			m.loadMetadata();
+			songs.push_back(m);
+			files.erase(files.begin() + i);
+		}
+	}
+}
+
+void listSongs(const vector<song>& songs) {
+	cout << "Total Song(s): " << songs.size() << '\n';
+	for (const song &m : songs) {
+		cout << m.name() << '\n';
+	}
+	cout << endl;
 }

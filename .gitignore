@@ -8,5 +8,6 @@
 
 /main
 /main.exe
-/test
-/test.flac
+
+/tama_file.o
+/tama_tag.o

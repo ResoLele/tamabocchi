@@ -1,12 +1,17 @@
 CXX = g++
-CXXFLAGS = -g
-FILES = main.cpp tama_file.cpp tama_tag.cpp
+# CXXFLAGS = -g
+MAIN = main.cpp
+OBJS = tama_file.o tama_tag.o
 
-main: $(FILES)
-	$(CXX) $(CXXFLAGS) -std=c++20 $(FILES) -o $@
+main: $(MAIN) $(OBJS)
+	$(CXX) $(CXXFLAGS) -std=c++20 $(MAIN) $(OBJS) -o $@
+
+tama_file.o: tama_file.cpp
+tama_new_tag.o: tama_new_tag.cpp
+	$(CXX) -c $<
 
 run: main
 	./main
 
 clean:
-	rm -f main
+	rm -f $(OBJS)

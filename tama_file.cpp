@@ -1,52 +1,53 @@
-#include "define.h"
+#include "tama_file.h"
 
-using namespace std;
-namespace fs = std::filesystem;
+void file::setName(const file_name name) {
+	_name = name;
+}
 
-// Class file
-void file::setFilename(const string filename) {_filename = filename;}
-void file::setPath(const fs::path path) {_path = path;}
-string file::filename() {return _filename;}
-fs::path file::path() {return _path;}
+void file::setPath(const file_path path) {
+	_path = path;
+}
 
-// Change Directory
-fs::path dirChange() {
-	string userInput;
+void file::setExtension(const file_ext extension) {
+	_extension = extension;
+}
 
-	while(true) {
-		cout << "Enter Path: (Leave empty using current path)" << endl;
-		getline(cin, userInput);
-		if (!userInput.length()) {
-			osClear(USER_OS);
-			cout << "Using current path" << endl;
-			return (fs::current_path() / "music");
-		}
-		else if (fs::exists(fs::path(userInput))) {
-			return fs::path(userInput);
-		}
+file_name file::name() const {
+	return _name;
+}
+
+file_path file::path() const {
+	return _path;
+}
+
+file_ext file::extension() const {
+	return _extension;
+}
+
+void changeDirectory(file_path &oldPath, const file_path newPath) {
+
+	if (fs::exists(newPath)) {
+		oldPath = newPath;
+		return;
+	}
+	cerr << "Path does not exist!" << endl;
+}
+
+void scanDirectory(vector<file> &files, const file_path path) {
+	files.clear();
+	for (const fs::directory_entry &entry : fs::directory_iterator(path)) {
+		file f;
+		f.setName(entry.path().filename());
+		f.setPath(entry.path());
+		f.setExtension(entry.path().extension());
+		files.push_back(f);
 	}
 }
 
-bool dirScan(fs::path path) {
-
-	int count = 0;
-
-	for (const fs::directory_entry &dirEntry : fs::directory_iterator(path)) {
-		if (dirEntry.path().extension() == ".flac") {
-			music flac;
-			count++;
-			flac.setFilename(dirEntry.path().filename());
-			flac.setPath(dirEntry.path());
-			files.push_back(flac);
-		}
-	}
-	return (count > 0);
-}
-
-void dirPrint(fs::path path) {
-	cout << "File count: "<< files.size() << endl;
-	for (music &i : files) {
-		cout << i.filename() << endl;
+void listFiles(const vector<file> &files) {
+	cout << "Total File(s): " << files.size() << '\n';
+	for (const file &i : files) {
+		cout << i.name() << '\n';
 	}
 	cout << endl;
 }
