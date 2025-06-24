@@ -5,7 +5,6 @@
 #include <cmath>
 #include <algorithm>
 #include <fstream>
-#include <sstream>
 
 #include "tama_file.h"
 
