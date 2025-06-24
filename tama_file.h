@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+#include <fstream>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -26,6 +27,7 @@ class file
 	void setExtension(const file_ext);
 
 	void write(const vector<byte>);
+	void save();
 
 	file_name name() const;
 	file_path path() const;

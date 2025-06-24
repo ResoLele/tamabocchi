@@ -25,7 +25,8 @@ enum action
 	ACTION_PRINT_TAGS,
 	ACTION_EDIT_COMMENT,
 	ACTION_SORT_COMMENT,
-	ACTION_ENCODE
+	ACTION_ENCODE,
+	ACTION_NEW_FILE,
 };
 
 int main() {
@@ -45,6 +46,7 @@ int main() {
 		"(5) Edit user comment in songs\n"
 		"(6) Sort user comment\n"
 		"(7) Encode\n"
+		"(8) Write into New File\n"
 		"(0) End Task"
         << endl;
 	
@@ -137,6 +139,42 @@ int main() {
 				selectedSong.encodeMetadata();
 				
 				break;
+			}
+		
+			case ACTION_NEW_FILE: {
+				file newFile;
+				int inputIndex;
+				
+				clearConsole();
+				listSongs(userSongs);
+				cout << "Select song: " << endl;
+				cin >> inputIndex;
+				cin.ignore();
+				clearConsole();
+
+				song& selectedSong = userSongs[inputIndex - 1];
+				vector<byte> fileMetadata = selectedSong.encodeMetadata();
+
+				fstream originalFile(selectedSong.path(), ios::in);
+				originalFile.seekg(fileMetadata.size(), ios::beg);
+
+				newFile.setName("test.flac");
+				newFile.setPath(userPath / newFile.name());
+
+				fstream outputFile(newFile.path(), ios::out);
+
+				outputFile.write(reinterpret_cast<const char*>(fileMetadata.data()), fileMetadata.size());
+
+				outputFile.seekg(fileMetadata.size(), ios::beg);
+
+				while (originalFile) {
+					vector<char> buffer(4096);
+					originalFile.read(buffer.data(), buffer.size());
+					outputFile.write(buffer.data(), originalFile.gcount());
+				}
+
+				originalFile.close();
+				outputFile.close();
 			}
 		}
 	} while (userAction != ACTION_END_TASK);

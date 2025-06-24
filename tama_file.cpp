@@ -24,6 +24,20 @@ file_ext file::extension() const {
 	return _extension;
 }
 
+void file::write(const vector<byte> bytes) {
+	fstream writeFile(path(), ios::out);
+	writeFile.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+	writeFile.close();
+}
+
+void file::save() {
+	fstream newFile(path(), ios::out);
+	
+	// newFile << "Hello world!";
+
+	newFile.close();
+}
+
 void changeDirectory(file_path &oldPath, const file_path newPath) {
 
 	if (fs::exists(newPath)) {

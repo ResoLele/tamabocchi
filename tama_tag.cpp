@@ -267,7 +267,7 @@ block song::encodePadding(const bool isLast) {
 	
 	encodeBlock.insert(encodeBlock.end(), metadataHeader.begin(), metadataHeader.end());
 	
-	
+
 	block paddingBlock(_padding._length, byte(0));
 	encodeBlock.insert(encodeBlock.end(), paddingBlock.begin(), paddingBlock.end());
 
@@ -312,8 +312,12 @@ block song::encodeVorbiusComment(const bool isLast) {
 
 block song::encodeMetadata() {
 	block encodeBlock;
+	
+	encodeBlock.insert(encodeBlock.end(), FLAC_SIGNATURE.begin(), FLAC_SIGNATURE.end());
+	
 	bool isLast;
 	block_type lastType;
+	
 	vector<block_type> encodeType;
 
 	vector<block_type> checkType = {
@@ -350,8 +354,6 @@ block song::encodeMetadata() {
 	}
 		encodeBlock.insert(encodeBlock.end(), encodeMetadata.begin(), encodeMetadata.end());
 	}
-
-	printBytes(encodeBlock);
 
 	return encodeBlock;
 }
