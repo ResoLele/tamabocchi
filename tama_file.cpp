@@ -24,33 +24,14 @@ FileExtension File::extension() const {
 	return _extension;
 }
 
-void File::write(const vector<byte> bytes) {
-	fstream writeFile(path(), ios::out);
-	writeFile.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
-	writeFile.close();
+void File::write(const std::vector<std::byte> bytes) {
+	std::fstream file(path(), std::ios::out);
+	file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+	file.close();
 }
 
 void File::save() {
-	fstream newFile(path(), ios::out);
+	std::fstream newFile(path(), std::ios::out);
 	
 	newFile.close();
-}
-
-void scanDirectory(vector<File> &files, const FilePath path) {
-	files.clear();
-	for (const fs::directory_entry &entry : fs::directory_iterator(path)) {
-		File f;
-		f.setName(entry.path().filename());
-		f.setPath(entry.path());
-		f.setExtension(entry.path().extension());
-		files.push_back(f);
-	}
-}
-
-void listFiles(const vector<File> &files) {
-	cout << "Total File(s): " << files.size() << '\n';
-	for (const File &i : files) {
-		cout << i.name() << '\n';
-	}
-	cout << endl;
 }

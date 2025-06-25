@@ -19,9 +19,6 @@
 #include "tama_tag.h"
 #include "tama_user.h"
 
-using namespace std;
-namespace fs = std::filesystem;
-
 void clearConsole();
 Song& promptSelectSong(User&);
 

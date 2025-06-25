@@ -8,14 +8,12 @@
 
 #include "tama_file.h"
 
-using namespace std;
-
 using TimeSecs = double;
 using TimeMins = uint16_t;
 
-using Block  = vector<byte>;
-using Header = vector<byte>;
-using Body   = vector<byte>;
+using Block  = std::vector<std::byte>;
+using Header = std::vector<std::byte>;
+using Body   = std::vector<std::byte>;
 using Size   = size_t;
 
 using SampleRate    = uint32_t;
@@ -25,7 +23,7 @@ using SampleCount   = uint64_t;
 
 const size_t HEADER_SIZE    = 4;
 const size_t SIGNATURE_SIZE = 4;
-const Header FLAC_SIGNATURE = {byte{0x66}, byte{0x4c}, byte{0x61}, byte{0x43}};
+const Header FLAC_SIGNATURE = {std::byte{0x66}, std::byte{0x4c}, std::byte{0x61}, std::byte{0x43}};
 
 enum MetadataType {
     STREAMINFO      = 0x00,
@@ -38,8 +36,8 @@ enum MetadataType {
 };
 
 struct UserComment {
-	string _field;
-	string _content;
+	std::string _field;
+	std::string _content;
 	bool   _isModified;
 };
 
@@ -73,8 +71,8 @@ struct Seektable : Metadata {
 struct VorbiusComment : Metadata {
 	VorbiusComment() {_type = VORBIUS_COMMENT;}
 	
-	string              _vendor;
-	vector<UserComment> _userComments;
+	std::string              _vendor;
+	std::vector<UserComment> _userComments;
 };
 
 struct Cuesheet : Metadata {
@@ -111,8 +109,8 @@ class Song : public File {
 	TimeSecs seconds();
 	
 	size_t userCommentCount();
-	string userCommentField(const uint32_t);
-	string userCommentContent(const string);
+	std::string userCommentField(const uint32_t);
+	std::string userCommentContent(const std::string);
 
 	Metadata& metadataBlock(const MetadataType);
 
@@ -129,7 +127,7 @@ class Song : public File {
 	Block encodeVorbiusComment(const bool);
 };
 
-void printBytes(const vector<byte>);
+void printBytes(const std::vector<std::byte>);
 
 Header encodeLEHeader(const Size);
 Header encodeBEHeader(const Size, const MetadataType, const bool);
@@ -137,7 +135,7 @@ Header encodeBEHeader(const Size, const MetadataType, const bool);
 Size decodeBEHeader(const Header);
 Size decodeLEHeader(const Header);
 
-void scanSongs(vector<Song>&, vector<File>&);
-void listSongs(const vector<Song>&);
+void scanSongs(std::vector<Song>&, std::vector<File>&);
+void listSongs(const std::vector<Song>&);
 
 #endif // TAMA_TAG_H

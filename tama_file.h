@@ -7,12 +7,9 @@
 #include <filesystem>
 #include <fstream>
 
-using namespace std;
-namespace fs = std::filesystem;
-
-using FilePath      = fs::path;
-using FileName      = string;
-using FileExtension	= string;
+using FilePath      = std::filesystem::path;
+using FileName      = std::string;
+using FileExtension	= std::string;
 
 class File {
 	private:
@@ -25,7 +22,7 @@ class File {
 	void setPath(const FilePath);
 	void setExtension(const FileExtension);
 
-	void write(const vector<byte>);
+	void write(const std::vector<std::byte>);
 	void save();
 
 	FileName name() const;
@@ -34,7 +31,7 @@ class File {
 };
 
 // void changeDirectory(file_path&, const file_path);
-void scanDirectory(vector<File>&, const FilePath);
-void listFiles(const vector<File>&);
+void scanDirectory(std::vector<File>&, const FilePath);
+void listFiles(const std::vector<File>&);
 
 #endif // TAMA_FILE_H

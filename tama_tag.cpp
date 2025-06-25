@@ -1,27 +1,27 @@
 #include "tama_tag.h"
 
-void printBytes(vector<byte> bytes) {
-	for (byte b : bytes) {
-		cout << setw(2) << setfill('0') << hex << static_cast<int>(b) << ' ';
+void printBytes(std::vector<std::byte> bytes) {
+	for (std::byte b : bytes) {
+		std::cout << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(b) << ' ';
 	}
-	cout << endl;
+	std::cout << '\n';
 }
 
 Header encodeBEHeader(const Size size, const MetadataType type, const bool isLast) {
 	Header encodeHeader(4);
-	encodeHeader[0] = (isLast ? byte(type | 0x80) : byte(type));
-	encodeHeader[1] = byte((size >> 16) & 0xFF);
-	encodeHeader[2] = byte((size >> 8) & 0xFF);
-	encodeHeader[3] = byte(size & 0xFF);
+	encodeHeader[0] = (isLast ? std::byte(type | 0x80) : std::byte(type));
+	encodeHeader[1] = std::byte((size >> 16) & 0xFF);
+	encodeHeader[2] = std::byte((size >> 8) & 0xFF);
+	encodeHeader[3] = std::byte(size & 0xFF);
 	return encodeHeader;
 }
 
 Header encodeLEHeader(const Size size) {
 	Header encodeHeader(4);
-	encodeHeader[0] = byte(size & 0xFF);
-	encodeHeader[1] = byte((size >> 8) & 0xFF);
-	encodeHeader[2] = byte((size >> 16) & 0xFF);
-	encodeHeader[3] = byte((size >> 24) & 0xFF);
+	encodeHeader[0] = std::byte(size & 0xFF);
+	encodeHeader[1] = std::byte((size >> 8) & 0xFF);
+	encodeHeader[2] = std::byte((size >> 16) & 0xFF);
+	encodeHeader[3] = std::byte((size >> 24) & 0xFF);
 	return encodeHeader;
 }
 
@@ -83,11 +83,11 @@ size_t Song::userCommentCount() {
 	return _vorbiusComment._userComments.size();
 }
 
-string Song::userCommentField(const uint32_t pos) {
+std::string Song::userCommentField(const uint32_t pos) {
 	return _vorbiusComment._userComments[pos]._field;
 }
 
-string Song::userCommentContent(const string field) {
+std::string Song::userCommentContent(const std::string field) {
 	for (UserComment i : _vorbiusComment._userComments) {
 		if (i._field == field) {
 			return i._content;
@@ -130,7 +130,7 @@ void Song::setVorbiusComment(const Body body) {
 	Size vendorLength = decodeLEHeader(vendorHeader);
 	
 	Body vendorBody(body.begin() + HEADER_SIZE, body.begin() + HEADER_SIZE + vendorLength);
-	string vendor(reinterpret_cast<char*>(vendorBody.data()), vendorBody.size());
+	std::string vendor(reinterpret_cast<char*>(vendorBody.data()), vendorBody.size());
 	_vorbiusComment._vendor = vendor;
 
 	Header userCommentHeader(body.begin() + HEADER_SIZE + vendorLength, body.begin() + HEADER_SIZE * 2 + vendorLength); 
@@ -142,16 +142,16 @@ void Song::setVorbiusComment(const Body body) {
 		Size currentLength = decodeLEHeader(currentHeader);
 		
 		Body currentBody(userCommentBody.begin() + HEADER_SIZE, userCommentBody.begin() + HEADER_SIZE + currentLength);
-		string currentString(reinterpret_cast<char*>(currentBody.data()), currentBody.size());
+		std::string currentString(reinterpret_cast<char*>(currentBody.data()), currentBody.size());
 		
 		userCommentBody.erase(userCommentBody.begin(), userCommentBody.begin() + HEADER_SIZE + currentLength);
 
 		Size fieldLength = currentString.find('=');
-		string field = currentString.substr(0, fieldLength);
+		std::string field = currentString.substr(0, fieldLength);
 
 		// from cppreference
 		transform(field.begin(), field.end(), field.begin(), [](unsigned char c){return toupper(c);});
-		string content = currentString.substr(fieldLength + 1);
+		std::string content = currentString.substr(fieldLength + 1);
 
 		_vorbiusComment._userComments.push_back({field, content});
 	}
@@ -165,9 +165,9 @@ void Song::setPadding(const Size paddingLength) {
 void Song::loadMetadata() {
 	Header metadataHeader(4);
 	Body metadataBody;
-	fstream file(path(), ios::in);
+	std::fstream file(path(), std::ios::in);
 
-	file.seekg(SIGNATURE_SIZE, ios::cur);
+	file.seekg(SIGNATURE_SIZE, std::ios::cur);
 	
 	do {
 		file.read(reinterpret_cast<char*>(metadataHeader.data()), HEADER_SIZE);
@@ -202,41 +202,41 @@ void Song::loadMetadata() {
 void Song::listStreaminfo() {
 	size_t WIDTH = 20;
 	
-	cout
-	<< setw(WIDTH) << "Filename" << ": " << name() << '\n'
-	<< setw(WIDTH) << "Path" << ": " << path() << '\n'
-	<< setw(WIDTH) << "Sample Rate" << ": " << sampleRate() << '\n'
-	<< setw(WIDTH) << "Channel" << ": " << channel() << '\n'
-	<< setw(WIDTH) << "Bits per sample" << ": " << bps() << '\n'
-	<< setw(WIDTH) << "Total Samples" << ": " << totalSamples() << '\n'
-	<< setw(WIDTH) << "Duration" << ": " << totalSecs() << " (" << minutes() << ':' << seconds() << ')' << '\n';
+	std::cout
+	<< std::setw(WIDTH) << "Filename" << ": " << name() << '\n'
+	<< std::setw(WIDTH) << "Path" << ": " << path() << '\n'
+	<< std::setw(WIDTH) << "Sample Rate" << ": " << sampleRate() << '\n'
+	<< std::setw(WIDTH) << "Channel" << ": " << channel() << '\n'
+	<< std::setw(WIDTH) << "Bits per sample" << ": " << bps() << '\n'
+	<< std::setw(WIDTH) << "Total Samples" << ": " << totalSamples() << '\n'
+	<< std::setw(WIDTH) << "Duration" << ": " << totalSecs() << " (" << minutes() << ':' << seconds() << ')' << '\n';
 }
 
 void Song::listVorbiusComment() {
-	cout
+	std::cout
 	<< _vorbiusComment._vendor << '\n';
 	for (int i = 0; i < userCommentCount(); i++) {
-		cout 
-		<< setw(15) << ((_vorbiusComment._userComments[i]._isModified ? "*" : "") + _vorbiusComment._userComments[i]._field)
+		std::cout 
+		<< std::setw(15) << ((_vorbiusComment._userComments[i]._isModified ? "*" : "") + _vorbiusComment._userComments[i]._field)
 		<< ": " << _vorbiusComment._userComments[i]._content << '\n'; 
 	}
 }
 
 void Song::listMetadata() {
-	cout << "====================================================================================================\n";
+	std::cout << "====================================================================================================\n";
 	
 	listStreaminfo();
 
-	cout << "\nUSER COMMENT SECTION:\n";
+	std::cout << "\nUSER COMMENT SECTION:\n";
 
 	listVorbiusComment();
 
-	cout << "====================================================================================================\n" << endl;
+	std::cout << "====================================================================================================\n" << '\n';
 }
 
 void Song::editUserComment(UserComment userComment) {
-	string &newField = userComment._field;
-	string newContent = userComment._content;
+	std::string &newField = userComment._field;
+	std::string newContent = userComment._content;
 
 	transform(newField.begin(), newField.end(), newField.begin(), [](unsigned char c){return toupper(c);});
 
@@ -268,7 +268,7 @@ Block Song::encodePadding(const bool isLast) {
 	encodeBlock.insert(encodeBlock.end(), metadataHeader.begin(), metadataHeader.end());
 	
 
-	Block paddingBlock(_padding._length, byte(0));
+	Block paddingBlock(_padding._length, std::byte(0));
 	encodeBlock.insert(encodeBlock.end(), paddingBlock.begin(), paddingBlock.end());
 
 	return encodeBlock;
@@ -281,24 +281,24 @@ Block Song::encodeVorbiusComment(const bool isLast) {
 	Header vendorHeader = encodeLEHeader(_vorbiusComment._vendor.size());
 	encodeBlock.insert(encodeBlock.end(), vendorHeader.begin(), vendorHeader.end());
 	encodeBlock.insert(encodeBlock.end(), 
-		reinterpret_cast<byte*>(_vorbiusComment._vendor.data()), 
-		reinterpret_cast<byte*>(_vorbiusComment._vendor.data() + _vorbiusComment._vendor.size())
+		reinterpret_cast<std::byte*>(_vorbiusComment._vendor.data()), 
+		reinterpret_cast<std::byte*>(_vorbiusComment._vendor.data() + _vorbiusComment._vendor.size())
 	);
 
 	Header userCommentCount = encodeLEHeader(_vorbiusComment._userComments.size());
 	encodeBlock.insert(encodeBlock.end(), userCommentCount.begin(), userCommentCount.end());
 
 	for (UserComment i : _vorbiusComment._userComments) {
-		string field = i._field;
-		string content = i._content;
-		string stringToEncode = field + '=' + content;
+		std::string field = i._field;
+		std::string content = i._content;
+		std::string stringToEncode = field + '=' + content;
 		Header userCommentHeader = encodeLEHeader((stringToEncode.size()));
 
 		encodeBlock.insert(encodeBlock.end(), userCommentHeader.begin(), userCommentHeader.end());
 
 		encodeBlock.insert(encodeBlock.end(), 
-			reinterpret_cast<byte*>(stringToEncode.data()),
-			reinterpret_cast<byte*>(stringToEncode.data() + stringToEncode.size())
+			reinterpret_cast<std::byte*>(stringToEncode.data()),
+			reinterpret_cast<std::byte*>(stringToEncode.data() + stringToEncode.size())
 		);
 	}
 
@@ -318,9 +318,9 @@ Block Song::encodeMetadata() {
 	bool isLast;
 	MetadataType lastType;
 	
-	vector<MetadataType> encodeType;
+	std::vector<MetadataType> encodeType;
 
-	vector<MetadataType> checkType = {
+	std::vector<MetadataType> checkType = {
 		STREAMINFO, VORBIUS_COMMENT, PADDING
 	};
 
@@ -358,7 +358,7 @@ Block Song::encodeMetadata() {
 	return encodeBlock;
 }
 
-void scanSongs(vector<Song>& songs, vector<File>& files) {
+void scanSongs(std::vector<Song>& songs, std::vector<File>& files) {
 	songs.clear();
 	for (int i = files.size() - 1; i >= 0; --i) {
 		if (files[i].extension() == ".flac") {
@@ -373,10 +373,10 @@ void scanSongs(vector<Song>& songs, vector<File>& files) {
 	}
 }
 
-void listSongs(const vector<Song>& songs) {
-	cout << "Total Song(s): " << songs.size() << '\n';
+void listSongs(const std::vector<Song>& songs) {
+	std::cout << "Total Song(s): " << songs.size() << '\n';
 	for (const Song &song : songs) {
-		cout << song.name() << '\n';
+		std::cout << song.name() << '\n';
 	}
-	cout << endl;
+	std::cout << '\n';
 }

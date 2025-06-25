@@ -6,14 +6,12 @@
 #include "tama_file.h"
 #include "tama_tag.h"
 
-using namespace std;
-
-const FilePath DEFAULT_PATH = fs::current_path() / "music";
+const FilePath DEFAULT_PATH = std::filesystem::current_path() / "music";
 
 class User {
 	private:
 	FilePath _path;
-	vector<Song> _songs;
+	std::vector<Song> _songs;
 
 	public:
 	User();

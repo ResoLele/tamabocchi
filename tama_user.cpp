@@ -12,17 +12,17 @@ FilePath User::currentPath() {
 }
 
 void User::changeDirectory(const FilePath newPath) {
-	if (fs::exists(newPath)) {
+	if (std::filesystem::exists(newPath)) {
 		_path = newPath;
 	}
 }
 
 void User::listDirectory() {
-	cout << "Total Song(s): " << (_songs.size()) << '\n';
+	std::cout << "Total Song(s): " << (_songs.size()) << '\n';
 	for (const Song &currentFile : _songs) {
-		cout << currentFile.name() << '\n';
+		std::cout << currentFile.name() << '\n';
 	}
-	cout << endl;
+	std::cout << '\n';
 }
 
 Song& User::song(const int inputIndex) {
@@ -32,14 +32,14 @@ Song& User::song(const int inputIndex) {
 void User::scanDirectory() {
 	_songs.clear();
 
-	for (const fs::directory_entry &entry : fs::directory_iterator(_path)) {
+	for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(_path)) {
 		if (entry.path().extension() == ".flac") {
 			Song newSong;
 			newSong.setName(entry.path().filename());
 			newSong.setPath(entry.path());
 			newSong.setExtension(entry.path().extension());
 			newSong.loadMetadata();
-			_songs.push_back(move(newSong));
+			_songs.push_back(newSong);
 		}	
 	}
 }

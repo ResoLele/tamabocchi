@@ -15,9 +15,9 @@ Song& promptSelectSong(User& user) {
 	int input;
 	
 	user.listDirectory();
-	cout << "Select song by index: ";
-	cin >> input;
-	cin.ignore();
+	std::cout << "Select song by index: ";
+	std::cin >> input;
+	std::cin.ignore();
 	
 	return user.song(input - 1);
 }
@@ -39,10 +39,10 @@ int main() {
 	User user;
 	clearConsole();
 	
-	cout 
-	<< "Current Path: " << user.currentPath() << endl;
+	std::cout 
+	<< "Current Path: " << user.currentPath() << '\n';
 	do {
-        cout <<
+        std::cout <<
 		"Select Action:\n"
 		"(1) Change Directory\n"
 		"(2) List all songs in current directory\n"
@@ -50,25 +50,25 @@ int main() {
 		"(4) Edit user comment in songs\n"
 		"(5) Save file\n"
 		"(0) End Task"
-        << endl;
+        << '\n';
 	
-		cin >> action;
-		cin.ignore();
+		std::cin >> action;
+		std::cin.ignore();
 
 		switch (action) {
 			case ACTION_CHANGE_DIR: {
 				clearConsole();
-				string path;
-				cout << "Input Path: " << endl;
-				getline(cin, path);
-				if(!fs::exists(fs::path(path))) {
-					cout << "PATH DOES NOT EXIST" << endl;
-					cout << "Current Path: " << user.currentPath() << endl;
+				std::string path;
+				std::cout << "Input Path: " << '\n';
+				getline(std::cin, path);
+				if(!std::filesystem::exists(FilePath(path))) {
+					std::cout << "PATH DOES NOT EXIST" << '\n';
+					std::cout << "Current Path: " << user.currentPath() << '\n';
 					break;
 				};
-				user.changeDirectory(fs::path(path));
+				user.changeDirectory(FilePath(path));
 				user.scanDirectory();
-				cout << "Current Path: " << user.currentPath() << endl;
+				std::cout << "Current Path: " << user.currentPath() << '\n';
 				break;
 			}
 			
@@ -95,19 +95,19 @@ int main() {
 				clearConsole();
 				selectedSong.listVorbiusComment();
 				
-				cout << "\nEnter field: " << endl;
-				getline(cin, userComment._field);
+				std::cout << "\nEnter field: " << '\n';
+				std::getline(std::cin, userComment._field);
 				
-				cout << "\nEnter Content: " << endl;
-				getline(cin, userComment._content);
+				std::cout << "\nEnter Content: " << '\n';
+				std::getline(std::cin, userComment._content);
 				
 				clearConsole();
-				cout << "New user comment: " << userComment._field << ": " << userComment._content << endl;
+				std::cout << "New user comment: " << userComment._field << ": " << userComment._content << '\n';
 				
 				selectedSong.editUserComment(userComment);
 				selectedSong.listVorbiusComment();
 				
-				cout << '\n';
+				std::cout << '\n';
 				break;
 			}
 			
@@ -120,17 +120,17 @@ int main() {
 				Song& song = promptSelectSong(user);
 				clearConsole();
 				
-				vector<byte> metadatas = song.encodeMetadata();
+				std::vector<std::byte> metadatas = song.encodeMetadata();
 
-				fstream iStreamFile(song.path(), ios::in);
-				iStreamFile.seekg(metadatas.size(), ios::beg);
+				std::fstream iStreamFile(song.path(), std::ios::in);
+				iStreamFile.seekg(metadatas.size(), std::ios::beg);
 				
-				fstream oStreamFile(DEFAULT_PATH / "test.flac", ios::out);
+				std::fstream oStreamFile(DEFAULT_PATH / "test.flac", std::ios::out);
 				oStreamFile.write(reinterpret_cast<const char*>(metadatas.data()), metadatas.size());
-				oStreamFile.seekg(metadatas.size(), ios::beg);
+				oStreamFile.seekg(metadatas.size(), std::ios::beg);
 
 				while (iStreamFile) {
-					vector<char> buffer(4096);
+					std::vector<char> buffer(4096);
 					iStreamFile.read(buffer.data(), buffer.size());
 					oStreamFile.write(buffer.data(), iStreamFile.gcount());
 				}
