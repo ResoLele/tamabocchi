@@ -32,6 +32,5 @@ void File::write(const std::vector<std::byte> bytes) {
 
 void File::save() {
 	std::fstream newFile(path(), std::ios::out);
-	
 	newFile.close();
 }

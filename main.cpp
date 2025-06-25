@@ -11,21 +11,21 @@ void clearConsole() {
 	}
 }
 
-Song& promptSelectSong(User& user) {
+Song* promptSelectSong(User& user) {
 	int input;
 	
-	user.listDirectory();
-	std::cout << "Select song by index: ";
+	user.listDirectory<Song>();
+	std::cout << "Select by index: ";
 	std::cin >> input;
 	std::cin.ignore();
 	
-	return user.song(input - 1);
+	return user.getEntry<Song>(input);
 }
 
 enum Action {
 	ACTION_END_TASK,
 	ACTION_CHANGE_DIR,
-	ACTION_LIST_SONGS,
+	ACTION_LIST_FILES,
 	ACTION_PRINT_TAGS,
 	ACTION_EDIT_COMMENT,
 	// ACTION_SORT_COMMENT,
@@ -34,6 +34,7 @@ enum Action {
 };
 
 int main() {
+
 	int action;
 
 	User user;
@@ -72,17 +73,17 @@ int main() {
 				break;
 			}
 			
-			case ACTION_LIST_SONGS: {
+			case ACTION_LIST_FILES: {
 				clearConsole();
-				user.listDirectory();
+				user.listDirectory<File>();
 				break;
 			}
 			
 			case ACTION_PRINT_TAGS: {
 				clearConsole();
-				Song& song = promptSelectSong(user);
+				Song* song = promptSelectSong(user);
 				clearConsole();
-				song.listMetadata();
+				song->listMetadata();
 				break;
 			}
 			
@@ -91,9 +92,9 @@ int main() {
 				userComment._isModified = true;
 
 				clearConsole();
-				Song& selectedSong = promptSelectSong(user);
+				Song* selectedSong = promptSelectSong(user);
 				clearConsole();
-				selectedSong.listVorbiusComment();
+				selectedSong->listVorbiusComment();
 				
 				std::cout << "\nEnter field: " << '\n';
 				std::getline(std::cin, userComment._field);
@@ -104,8 +105,8 @@ int main() {
 				clearConsole();
 				std::cout << "New user comment: " << userComment._field << ": " << userComment._content << '\n';
 				
-				selectedSong.editUserComment(userComment);
-				selectedSong.listVorbiusComment();
+				selectedSong->editUserComment(userComment);
+				selectedSong->listVorbiusComment();
 				
 				std::cout << '\n';
 				break;
@@ -117,12 +118,12 @@ int main() {
 		
 			case ACTION_SAVE_AS_NEW: {
 				clearConsole();
-				Song& song = promptSelectSong(user);
+				Song* song = promptSelectSong(user);
 				clearConsole();
 				
-				std::vector<std::byte> metadatas = song.encodeMetadata();
+				std::vector<std::byte> metadatas = song->encodeMetadata();
 
-				std::fstream iStreamFile(song.path(), std::ios::in);
+				std::fstream iStreamFile(song->path(), std::ios::in);
 				iStreamFile.seekg(metadatas.size(), std::ios::beg);
 				
 				std::fstream oStreamFile(DEFAULT_PATH / "test.flac", std::ios::out);

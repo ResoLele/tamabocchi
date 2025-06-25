@@ -14,12 +14,13 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <memory>
 
 #include "tama_file.h"
 #include "tama_tag.h"
 #include "tama_user.h"
 
 void clearConsole();
-Song& promptSelectSong(User&);
+Song* promptSelectSong(User&);
 
 #endif // DEFINE_H

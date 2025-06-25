@@ -1,7 +1,7 @@
 #include "tama_user.h"
 
 User::User() {
-	_songs.clear();
+	_files.clear();
 
 	changeDirectory(DEFAULT_PATH);
 	scanDirectory();
@@ -17,31 +17,63 @@ void User::changeDirectory(const FilePath newPath) {
 	}
 }
 
+template <typename T>
 void User::listDirectory() {
-	std::cout << "Total Song(s): " << (_songs.size()) << '\n';
-	for (const Song &currentFile : _songs) {
-		std::cout << currentFile.name() << '\n';
+	int i = 1;
+	for (const std::unique_ptr<File>& file : _files) {
+		if (T* temp = dynamic_cast<T*>(file.get())) {
+			std::cout << '(' << i << ")\t" << temp->name() << '\n';
+			i++;
+		}
 	}
+	std::cout << "Total File(s): " << --i << '\n';
 	std::cout << '\n';
 }
 
-Song& User::song(const int inputIndex) {
-	return _songs[inputIndex];
+template <typename T>
+T* User::getEntry(const int index) {
+	std::vector<T*> filteredResult;
+
+	for (const std::unique_ptr<File>& file : _files) {
+		if (T* temp = dynamic_cast<T*>(file.get())) {
+			filteredResult.push_back(temp);
+		}
+	}
+
+	return filteredResult[index - 1];
 }
 
+template <typename T>
+std::unique_ptr<T> User::createEntry(const std::filesystem::directory_entry entry) {
+	std::unique_ptr<T> file = std::make_unique<T>();
+	file->setName(entry.path().filename());
+	file->setPath(entry.path());
+	file->setExtension(entry.path().extension());
+	return file;
+};
+
 void User::scanDirectory() {
-	_songs.clear();
+	_files.clear();
 
 	for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(_path)) {
 		if (entry.path().extension() == ".flac") {
-			Song newSong;
-			newSong.setName(entry.path().filename());
-			newSong.setPath(entry.path());
-			newSong.setExtension(entry.path().extension());
-			newSong.loadMetadata();
-			_songs.push_back(newSong);
+			std::unique_ptr<Song> file = createEntry<Song>(entry);
+			file->loadMetadata();
+			_files.push_back(std::move(file));
 		}	
+		else {
+			std::unique_ptr<File> file = createEntry<File>(entry);
+			_files.push_back(std::move(file));
+		}
 	}
 }
 
+// include those else can't compile
+template void User::listDirectory<File>();
+template void User::listDirectory<Song>();
 
+template File* User::getEntry<File>(const int);
+template Song* User::getEntry<Song>(const int);
+
+template std::unique_ptr<File> User::createEntry(const std::filesystem::directory_entry);
+template std::unique_ptr<Song> User::createEntry(const std::filesystem::directory_entry);

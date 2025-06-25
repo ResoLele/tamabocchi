@@ -18,10 +18,12 @@ class File {
 	FileExtension _extension;
 
 	public:
+	virtual ~File() = default;
+
 	void setName(const FileName);
 	void setPath(const FilePath);
 	void setExtension(const FileExtension);
-
+	
 	void write(const std::vector<std::byte>);
 	void save();
 
@@ -29,9 +31,5 @@ class File {
 	FilePath path() const;
 	FileExtension extension() const;
 };
-
-// void changeDirectory(file_path&, const file_path);
-void scanDirectory(std::vector<File>&, const FilePath);
-void listFiles(const std::vector<File>&);
 
 #endif // TAMA_FILE_H

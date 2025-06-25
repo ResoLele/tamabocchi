@@ -1,9 +1,10 @@
 CXX = g++ -std=c++20
+CXXFLAGS = -fsanitize=address,leak
 MAIN = main.cpp
 OBJS = tama_file.o tama_tag.o tama_user.o
 
 main: $(MAIN) $(OBJS)
-	$(CXX) $(MAIN) $(OBJS) -o $@
+	$(CXX) $(CXXFLAGS) $(MAIN) $(OBJS) -o $@
 
 tama_file.o: tama_file.cpp
 	$(CXX) -c $<

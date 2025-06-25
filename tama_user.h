@@ -11,18 +11,27 @@ const FilePath DEFAULT_PATH = std::filesystem::current_path() / "music";
 class User {
 	private:
 	FilePath _path;
-	std::vector<Song> _songs;
+	std::vector<std::unique_ptr<File>> _files;
 
 	public:
 	User();
-	
+
 	FilePath currentPath();
-	void listDirectory();
+
+	template <typename T>
+	T* getEntry(const int);
 	
+	template <typename T>
+	T* getEntry(const std::string);
+	
+	template <typename T>
+	std::unique_ptr<T> createEntry(const std::filesystem::directory_entry entry);
+	
+	template <typename T>
+	void listDirectory();
+
 	void scanDirectory();
 	void changeDirectory(const FilePath);
-	
-	Song& song(const int);
 };
 
 #endif // TAMA_USER_H
