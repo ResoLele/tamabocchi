@@ -94,6 +94,9 @@ class Song : public File {
 	Picture        _picture;
 
 	public:
+	Song(const FileEntry&);
+	void lazyLoad();
+	
 	void loadMetadata();
 	void setStreaminfo(const Body);
 	void setVorbiusComment(const Body);

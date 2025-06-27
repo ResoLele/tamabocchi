@@ -1,5 +1,9 @@
 #include "tama_tag.h"
 
+Song::Song(const FileEntry& entry) : File(entry) {
+	_entry = entry;
+}
+
 void printBytes(std::vector<std::byte> bytes) {
 	for (std::byte b : bytes) {
 		std::cout << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(b) << ' ';
@@ -157,45 +161,76 @@ void Song::setVorbiusComment(const Body body) {
 	}
 }
 
+void Song::lazyLoad() {
+	Header signature(4);
+	Header metadataHeader(4);
+	Body metadataBody;
+	std::fstream file(path(), std::ios::in);
+	file.read(reinterpret_cast<char*>(signature.data()), HEADER_SIZE);
+	if (signature == FLAC_SIGNATURE) {
+		do {
+			file.read(reinterpret_cast<char*>(metadataHeader.data()), HEADER_SIZE);
+			Size metadataLength = decodeBEHeader(metadataHeader);
+	
+			if ((static_cast<int>(metadataHeader[0]) & 0x0F) == VORBIUS_COMMENT) {
+				std::cout << "LOADING: " << path() << '\n';
+				metadataBody.resize(metadataLength);
+				file.read(reinterpret_cast<char*>(metadataBody.data()), metadataLength);
+				setVorbiusComment(metadataBody);
+			}
+			else {
+				file.seekg(metadataLength, std::ios::cur);
+				std::cout << "SKIP!\n";
+			}
+	
+		} while ((static_cast<uint8_t>(metadataHeader[0]) & 0xF0) != 0x80);
+	}
+	// file.seekg(SIGNATURE_SIZE, std::ios::cur);
+	file.close();
+}
+
 void Song::setPadding(const Size paddingLength) {
 	_padding._isExist = true;	
 	_padding._length = paddingLength;
 }
 
 void Song::loadMetadata() {
+	Header signature(4);
 	Header metadataHeader(4);
 	Body metadataBody;
 	std::fstream file(path(), std::ios::in);
 
-	file.seekg(SIGNATURE_SIZE, std::ios::cur);
-	
-	do {
-		file.read(reinterpret_cast<char*>(metadataHeader.data()), HEADER_SIZE);
-		Size metadataLength = decodeBEHeader(metadataHeader);
-		metadataBody.resize(metadataLength);
-		file.read(reinterpret_cast<char*>(metadataBody.data()), metadataLength);
+	// file.seekg(SIGNATURE_SIZE, std::ios::cur);
+	file.read(reinterpret_cast<char*>(signature.data()), HEADER_SIZE);
+	if (signature == FLAC_SIGNATURE) {
+		do {
+			file.read(reinterpret_cast<char*>(metadataHeader.data()), HEADER_SIZE);
+			Size metadataLength = decodeBEHeader(metadataHeader);
+			metadataBody.resize(metadataLength);
+			file.read(reinterpret_cast<char*>(metadataBody.data()), metadataLength);
+			std::cout << "LOADING: " << path() << '\n';
+			switch (static_cast<int>(metadataHeader[0]) & 0x0F) {
+				case STREAMINFO:
+				setStreaminfo(metadataBody);
+				break;
+				
+				case PADDING:
+				setPadding(metadataLength);
+				break;
+				
+				case VORBIUS_COMMENT:
+				setVorbiusComment(metadataBody);
+				break;
 
-		switch (static_cast<int>(metadataHeader[0]) & 0x0F) {
-			case STREAMINFO:
-			setStreaminfo(metadataBody);
-			break;
-			
-			case PADDING:
-			setPadding(metadataLength);
-			break;
-			
-			case VORBIUS_COMMENT:
-			setVorbiusComment(metadataBody);
-			break;
+				case APPLICATION: 
+				case SEEKTABLE:
+				case CUESHEET:
+				case PICTURE:
+				break;
+			}
 
-
-			case APPLICATION: 
-			case SEEKTABLE:
-			case CUESHEET:
-			case PICTURE:
-			break;
-		}
-	} while ((static_cast<uint8_t>(metadataHeader[0]) & 0xF0) != 0x80);
+		} while ((static_cast<uint8_t>(metadataHeader[0]) & 0xF0) != 0x80);
+	}
 	file.close();
 }
 
@@ -203,7 +238,7 @@ void Song::listStreaminfo() {
 	size_t WIDTH = 20;
 	
 	std::cout
-	<< std::setw(WIDTH) << "Filename" << ": " << name() << '\n'
+	<< std::setw(WIDTH) << "Filename" << ": " << filename() << '\n'
 	<< std::setw(WIDTH) << "Path" << ": " << path() << '\n'
 	<< std::setw(WIDTH) << "Sample Rate" << ": " << sampleRate() << '\n'
 	<< std::setw(WIDTH) << "Channel" << ": " << channel() << '\n'
@@ -225,7 +260,7 @@ void Song::listVorbiusComment() {
 void Song::listMetadata() {
 	std::cout << "====================================================================================================\n";
 	
-	listStreaminfo();
+	// listStreaminfo();
 
 	std::cout << "\nUSER COMMENT SECTION:\n";
 
@@ -358,25 +393,25 @@ Block Song::encodeMetadata() {
 	return encodeBlock;
 }
 
-void scanSongs(std::vector<Song>& songs, std::vector<File>& files) {
-	songs.clear();
-	for (int i = files.size() - 1; i >= 0; --i) {
-		if (files[i].extension() == ".flac") {
-			Song song;
-			song.setName(files[i].name());
-			song.setPath(files[i].path());
-			song.setExtension(files[i].extension());
-			song.loadMetadata();
-			songs.push_back(song);
-			files.erase(files.begin() + i);
-		}
-	}
-}
+// void scanSongs(std::vector<Song>& songs, std::vector<File>& files) {
+// 	songs.clear();
+// 	for (int i = files.size() - 1; i >= 0; --i) {
+// 		if (files[i].extension() == ".flac") {
+// 			Song song;
+// 			song.setName(files[i].filename());
+// 			song.setPath(files[i].path());
+// 			song.setExtension(files[i].extension());
+// 			song.loadMetadata();
+// 			songs.push_back(song);
+// 			files.erase(files.begin() + i);
+// 		}
+// 	}
+// }
 
 void listSongs(const std::vector<Song>& songs) {
 	std::cout << "Total Song(s): " << songs.size() << '\n';
 	for (const Song &song : songs) {
-		std::cout << song.name() << '\n';
+		std::cout << song.filename() << '\n';
 	}
 	std::cout << '\n';
 }

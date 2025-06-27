@@ -10,24 +10,29 @@
 using FilePath      = std::filesystem::path;
 using FileName      = std::string;
 using FileExtension	= std::string;
+using FileEntry     = std::filesystem::directory_entry;
 
 class File {
+	protected:
+	FileEntry _entry;
+	
 	private:
-	FileName      _name; 
-	FilePath      _path;
-	FileExtension _extension;
+	// FileName      _name;
+	// FilePath      _path;
+	// FileExtension _extension;
 
 	public:
+	File(const FileEntry&);
 	virtual ~File() = default;
 
-	void setName(const FileName);
-	void setPath(const FilePath);
-	void setExtension(const FileExtension);
+	// void setName(const FileName);
+	// void setPath(const FilePath);
+	// void setExtension(const FileExtension);
 	
 	void write(const std::vector<std::byte>);
 	void save();
 
-	FileName name() const;
+	FileName filename() const;
 	FilePath path() const;
 	FileExtension extension() const;
 };
