@@ -1,9 +1,9 @@
 #include "tama_user.h"
 
-User::User() {
+User::User(const FilePath path) {
 	_files.clear();
 
-	changeDirectory(DEFAULT_PATH);
+	changeDirectory(path);
 	scanDirectory();
 }
 
@@ -20,8 +20,8 @@ void User::changeDirectory(const FilePath newPath) {
 template <typename T>
 void User::listDirectory() {
 	int i = 1;
-	for (const std::unique_ptr<File>& file : _files) {
-		if (T* temp = dynamic_cast<T*>(file.get())) {
+	for (const std::pair<const FilePath, std::unique_ptr<File>>& file : _files) {
+		if (T* temp = dynamic_cast<T*>(file.second.get())) {
 			std::cout << '(' << i << ")\t" << temp->filename() << '\n';
 			i++;
 		}
@@ -30,51 +30,45 @@ void User::listDirectory() {
 	std::cout << '\n';
 }
 
-template <typename T>
-T* User::getEntry(const int index) {
-	std::vector<T*> filteredResult;
-
-	for (const std::unique_ptr<File>& file : _files) {
-		if (T* temp = dynamic_cast<T*>(file.get())) {
-			filteredResult.push_back(temp);
-		}
-	}
-
-	return filteredResult[index - 1];
-}
-
-// template <typename T>
-// std::unique_ptr<T> User::createEntry(const std::filesystem::directory_entry entry) {
-// 	std::unique_ptr<T> file = std::make_unique<T>();
-// 	file->setName(entry.path().filename());
-// 	file->setPath(entry.path());
-// 	file->setExtension(entry.path().extension());
-// 	return file;
-// };
-
 void User::scanDirectory() {
 	_files.clear();
+	_albumMap.clear();
 
 	for (const std::filesystem::directory_entry &entry : std::filesystem::recursive_directory_iterator(_path)) {
 		if (entry.path().extension() == ".flac") {
-			std::unique_ptr<Song> file = std::make_unique<Song>(entry);
+			std::unique_ptr<Song> song = std::make_unique<Song>(entry);
 			// file->lazyLoad();
-			file->loadMetadata();
-			_files.push_back(std::move(file));
+			song->loadMetadata();
+			_albumMap[song->getTag("ALBUM")].push_back(song.get());
+			std::sort(_albumMap[song->getTag("ALBUM")].begin(), _albumMap[song->getTag("ALBUM")].end(), [](Song* m, Song* n) {
+				return m->filename() < n->filename();
+			});
+			_files[song->path()] = std::move(song);
 		}	
 		// else {
 		// 	std::unique_ptr<File> file = std::make_unique<File>(entry);
-		// 	_files.push_back(std::move(file));
+		// 	_files[file->path()] = std::move(file);
 		// }
 	}
 }
 
-// include those else can't compile
+void User::searchHashMap(const std::string search) {
+	for (const std::pair<const FilePath, std::unique_ptr<File>>& file : _files) {
+		if (file.first.string().find(search) != STRING_NOT_FOUND) {
+			std::cout << file.first << '\n';
+		}
+	}
+}
+
+void User::listAlbumMap() {
+	for (const std::pair<const std::string, const std::vector<Song*>>& album : _albumMap) {
+		std::cout << album.first << '\n';
+		for (const Song* song : album.second) {
+			std::cout << '\t' << song->filename() << '\n';
+		}
+	}
+}
+
+// include those for templates else can't compile
 template void User::listDirectory<File>();
 template void User::listDirectory<Song>();
-
-template File* User::getEntry<File>(const int);
-template Song* User::getEntry<Song>(const int);
-
-// template std::unique_ptr<File> User::createEntry(const std::filesystem::directory_entry);
-// template std::unique_ptr<Song> User::createEntry(const std::filesystem::directory_entry);

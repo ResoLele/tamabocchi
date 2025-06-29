@@ -32,6 +32,7 @@ class File {
 	void write(const std::vector<std::byte>);
 	void save();
 
+	FileEntry entry() const;
 	FileName filename() const;
 	FilePath path() const;
 	FileExtension extension() const;

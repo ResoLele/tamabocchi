@@ -11,16 +11,16 @@ void clearConsole() {
 	}
 }
 
-Song* promptSelectSong(User& user) {
-	int input;
+// Song* promptSelectSong(User& user) {
+// 	int input;
 	
-	user.listDirectory<Song>();
-	std::cout << "Select by index: ";
-	std::cin >> input;
-	std::cin.ignore();
+// 	user.listDirectory<Song>();
+// 	std::cout << "Select by index: ";
+// 	std::cin >> input;
+// 	std::cin.ignore();
 	
-	return user.getEntry<Song>(input);
-}
+// 	return user.getEntry<Song>(input);
+// }
 
 enum Action {
 	ACTION_END_TASK,
@@ -37,11 +37,14 @@ int main() {
 
 	int action;
 
-	User user;
-	clearConsole();
+	User user(DEFAULT_PATH);
+	// clearConsole();
 	
 	std::cout 
 	<< "Current Path: " << user.currentPath() << '\n';
+	user.listAlbumMap();
+	std::cout << '\n';
+
 	do {
         std::cout <<
 		"Select Action:\n"
@@ -69,6 +72,8 @@ int main() {
 				};
 				user.changeDirectory(FilePath(path));
 				user.scanDirectory();
+				user.listAlbumMap();
+				std::cout << '\n';
 				std::cout << "Current Path: " << user.currentPath() << '\n';
 				break;
 			}
@@ -81,65 +86,70 @@ int main() {
 			
 			case ACTION_PRINT_TAGS: {
 				clearConsole();
-				Song* song = promptSelectSong(user);
-				clearConsole();
-				song->listMetadata();
+				std::string input;
+				std::cin >> input;
+				user.searchHashMap(input);
+				// File* result = user.searchHashMap(input);
+				// std::cout << result->filename();
+			// 	Song* song = promptSelectSong(user);
+			// 	clearConsole();
+			// 	song->listMetadata();
 				break;
 			}
 			
-			case ACTION_EDIT_COMMENT: {
-				UserComment userComment;
-				userComment._isModified = true;
+			// case ACTION_EDIT_COMMENT: {
+			// 	HashMap userComment;
+			// 	userComment._isModified = true;
 
-				clearConsole();
-				Song* selectedSong = promptSelectSong(user);
-				clearConsole();
-				selectedSong->listVorbiusComment();
+			// 	clearConsole();
+			// 	Song* selectedSong = promptSelectSong(user);
+			// 	clearConsole();
+			// 	selectedSong->listVorbiusComment();
 				
-				std::cout << "\nEnter field: " << '\n';
-				std::getline(std::cin, userComment._field);
+			// 	std::cout << "\nEnter field: " << '\n';
+			// 	std::getline(std::cin, userComment._field);
 				
-				std::cout << "\nEnter Content: " << '\n';
-				std::getline(std::cin, userComment._content);
+			// 	std::cout << "\nEnter Content: " << '\n';
+			// 	std::getline(std::cin, userComment._content);
 				
-				clearConsole();
-				std::cout << "New user comment: " << userComment._field << ": " << userComment._content << '\n';
+			// 	clearConsole();
+			// 	std::cout << "New user comment: " << userComment._field << ": " << userComment._content << '\n';
 				
-				selectedSong->editUserComment(userComment);
-				selectedSong->listVorbiusComment();
+			// 	selectedSong->editUserComment(userComment);
+			// 	selectedSong->listVorbiusComment();
 				
-				std::cout << '\n';
-				break;
-			}
+			// 	std::cout << '\n';
+			// 	break;
+			// }
 			
 			// case ACTION_SORT_COMMENT: {
 			// 	break;
 			// }
 		
-			case ACTION_SAVE_AS_NEW: {
-				clearConsole();
-				Song* song = promptSelectSong(user);
-				clearConsole();
+			// case ACTION_SAVE_AS_NEW: {
+			// 	clearConsole();
+			// 	Song* song = promptSelectSong(user);
+			// 	clearConsole();
 				
-				std::vector<std::byte> metadatas = song->encodeMetadata();
+			// 	std::vector<std::byte> metadatas = song->encodeMetadata();
 
-				std::fstream iStreamFile(song->path(), std::ios::in);
-				iStreamFile.seekg(metadatas.size(), std::ios::beg);
+			// 	std::fstream iStreamFile(song->path(), std::ios::in);
+			// 	iStreamFile.seekg(metadatas.size(), std::ios::beg);
 				
-				std::fstream oStreamFile(DEFAULT_PATH / "test.flac", std::ios::out);
-				oStreamFile.write(reinterpret_cast<const char*>(metadatas.data()), metadatas.size());
-				oStreamFile.seekg(metadatas.size(), std::ios::beg);
+			// 	std::fstream oStreamFile(DEFAULT_PATH / "test.flac", std::ios::out);
+			// 	oStreamFile.write(reinterpret_cast<const char*>(metadatas.data()), metadatas.size());
+			// 	oStreamFile.seekg(metadatas.size(), std::ios::beg);
 
-				while (iStreamFile) {
-					std::vector<char> buffer(4096);
-					iStreamFile.read(buffer.data(), buffer.size());
-					oStreamFile.write(buffer.data(), iStreamFile.gcount());
-				}
+			// 	while (iStreamFile) {
+			// 		std::vector<char> buffer(4096);
+			// 		iStreamFile.read(buffer.data(), buffer.size());
+			// 		oStreamFile.write(buffer.data(), iStreamFile.gcount());
+			// 	}
 
-				iStreamFile.close();
-				oStreamFile.close();
-				break;
-			}
+			// 	iStreamFile.close();
+			// 	oStreamFile.close();
+			// 	break;
+			// }
 		}
 	} while (action != ACTION_END_TASK);
 	

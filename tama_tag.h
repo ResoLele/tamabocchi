@@ -5,16 +5,18 @@
 #include <cmath>
 #include <algorithm>
 #include <fstream>
+#include <unordered_map>
 
 #include "tama_file.h"
 
 using TimeSecs = double;
 using TimeMins = uint16_t;
 
-using Block  = std::vector<std::byte>;
-using Header = std::vector<std::byte>;
-using Body   = std::vector<std::byte>;
-using Size   = size_t;
+using Block       = std::vector<std::byte>;
+using Header      = std::vector<std::byte>;
+using Body        = std::vector<std::byte>;
+using Size        = size_t;
+using HashMapTag  = std::unordered_map<std::string, std::string>;
 
 using SampleRate    = uint32_t;
 using ChannelCount  = uint16_t;
@@ -35,44 +37,51 @@ enum MetadataType {
     PICTURE         = 0x06,
 };
 
-struct UserComment {
-	std::string _field;
-	std::string _content;
-	bool   _isModified;
-};
+// struct UserComment {
+// 	std::string _field;
+// 	std::string _content;
+// 	bool   _isModified;
+// };
 
 struct Metadata {
 	MetadataType _type;
 	Size         _length;
-	Body         _body;
 	bool         _isExist = false;
 	bool         _isLast = false;
 };
 
-struct Streaminfo : Metadata {
-	Streaminfo() {
+const Size STREAMINFO_SIZE = 34;
+
+struct StreaminfoBlock : Metadata {
+	Body _body;
+	StreaminfoBlock() {
 		_type = STREAMINFO;
-		_length = 34;
+		_length = STREAMINFO_SIZE;
 	}
 };
 
-struct Padding : Metadata {
-	Padding() {_type = PADDING;}
+struct PaddingBlock : Metadata {
+	PaddingBlock() {_type = PADDING;}
 };
 
-struct Application : Metadata {
-	Application() {_type = APPLICATION;}
+struct ApplicationBlock : Metadata {
+	ApplicationBlock() {_type = APPLICATION;}
 };
 
-struct Seektable : Metadata {
-	Seektable() {_type = SEEKTABLE;}
+struct SeektableBlock : Metadata {
+	SeektableBlock() {_type = SEEKTABLE;}
 };
 
-struct VorbiusComment : Metadata {
-	VorbiusComment() {_type = VORBIUS_COMMENT;}
+struct VorbiusCommentBlock : Metadata {
 	
-	std::string              _vendor;
-	std::vector<UserComment> _userComments;
+	HashMapTag _tags;
+	
+	VorbiusCommentBlock() {_type = VORBIUS_COMMENT;}
+	size_t size();
+
+	std::string find(const std::string);
+	// std::string              _vendor;
+	// std::vector<UserComment> _userComments;
 };
 
 struct Cuesheet : Metadata {
@@ -85,13 +94,13 @@ struct Picture : Metadata {
 
 class Song : public File {
 	private:
-	Streaminfo     _streaminfo;
-	Padding        _padding;
-	Application    _application;
-	Seektable      _seektable;
-	VorbiusComment _vorbiusComment;
-	Cuesheet       _cuesheet;
-	Picture        _picture;
+	StreaminfoBlock     _streaminfo;
+	PaddingBlock        _padding;
+	ApplicationBlock    _application;
+	SeektableBlock      _seektable;
+	VorbiusCommentBlock _vorbiusComment;
+	Cuesheet            _cuesheet;
+	Picture             _picture;
 
 	public:
 	Song(const FileEntry&);
@@ -111,9 +120,9 @@ class Song : public File {
 	TimeMins minutes();
 	TimeSecs seconds();
 	
-	size_t userCommentCount();
-	std::string userCommentField(const uint32_t);
-	std::string userCommentContent(const std::string);
+	// size_t userCommentCount();
+	// std::string userCommentField(const uint32_t);
+	// std::string userCommentContent(const std::string);
 
 	Metadata& metadataBlock(const MetadataType);
 
@@ -121,7 +130,8 @@ class Song : public File {
 	void listStreaminfo();
 	void listVorbiusComment();
 
-	void editUserComment(UserComment);
+	std::string getTag(std::string);
+	void setTag(std::string, const std::string);
 
 	Block encodeMetadata();
 

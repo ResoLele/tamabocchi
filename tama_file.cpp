@@ -16,6 +16,10 @@ File::File(const FileEntry& entry) {
 // 	_extension = extension;
 // }
 
+FileEntry File::entry() const {
+	return _entry;
+}
+
 FileName File::filename() const {
 	return _entry.path().filename();
 }
@@ -27,6 +31,7 @@ FilePath File::path() const {
 FileExtension File::extension() const {
 	return _entry.path().extension();
 }
+
 
 void File::write(const std::vector<std::byte> bytes) {
 	std::fstream file(path(), std::ios::out);
